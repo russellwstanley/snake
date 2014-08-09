@@ -1,7 +1,15 @@
-@(message: String)
+@(title: String)
+<html>
+<head>
+    <title>@title</title>
+</head>
+<body>
 
-@main("Welcome to Play") {
+<canvas id="canvas" width="600" height="600" class="clear" style="border:1px dotted;float:left"></canvas>
+<script src="assets/javascripts/jquery-2.1.1.min.js" ></script>
+<script src="assets/javascripts/snake.js"></script>
+</body>
 
-    @play20.welcome(message)
 
-}
+</html>
+
