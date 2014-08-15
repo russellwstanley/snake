@@ -1,18 +1,17 @@
 $(document).ready(function() {
-
-    var canvas = $("#canvas")[0]
-    var context = canvas.getContext("2d")
+    var snakeWidth = 10;
+    var canvas = $("#canvas")[0];
+    var context = canvas.getContext("2d");
     soc = new WebSocket("ws://"+location.host+"/socket");
     soc.onmessage = function(event){
-        snakes = JSON.parse(event.data)
+        snakes = JSON.parse(event.data);
         context.clearRect(0, 0, canvas.width, canvas.height);
         for(i=0;i<snakes.length; i++){
-            points = snakes[i]
+            points = snakes[i];
             for(j=0;j<points.length;j++){
-                xpos = points[j].x * 10;
-                ypos = points[j].y * 10;
-                console.log("drawing point at ("+xpos+","+ypos)
-                context.fillRect(xpos,ypos ,10,10)
+                xpos = points[j].x * snakeWidth;
+                ypos = points[j].y * snakeWidth;
+                context.fillRect(xpos,ypos ,snakeWidth,snakeWidth);
             }
         }
         console.log(event.data);

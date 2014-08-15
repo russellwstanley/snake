@@ -8,4 +8,5 @@
 //  if(res) println(" devides by seven and 5")
 //  res
 //})
-
+val l = List(1,2,3)
+val n = 2  :: l
