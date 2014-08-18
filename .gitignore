@@ -5,6 +5,7 @@ target
 tmp
 .history
 dist
+deploy/package/**
 /.idea
 /*.iml
 /out
@@ -13,3 +14,4 @@ dist
 /.project
 /RUNNING_PID
 /.settings
+**/*.swp

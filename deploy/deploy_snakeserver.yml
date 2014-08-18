@@ -1,0 +1,9 @@
+---
+- name: deploy snakeserver
+  hosts: snakeserver
+  tasks:
+    - command: pwd
+    - synchronize: src=package/ dest=/root/snake/ delete=true
+    - copy : src=upstart/snake.conf dest=/etc/init/
+    - command: service snake stop
+    - command: service snake start

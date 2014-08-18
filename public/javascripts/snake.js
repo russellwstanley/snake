@@ -2,7 +2,12 @@ $(document).ready(function() {
     var snakeWidth = 10;
     var canvas = $("#canvas")[0];
     var context = canvas.getContext("2d");
-    soc = new WebSocket("ws://"+location.host+"/socket");
+    wsEndpoint = location.host+':9000';
+    //TODO this is ugly
+    if(location.host.indexOf(':') > -1){
+        wsEndpoint = location.host; //do not append the port if already connecting on a non default port
+    }
+    soc = new WebSocket("ws://"+wsEndpoint+"/socket");
     soc.onmessage = function(event){
         snakes = JSON.parse(event.data);
         context.clearRect(0, 0, canvas.width, canvas.height);
@@ -14,7 +19,6 @@ $(document).ready(function() {
                 context.fillRect(xpos,ypos ,snakeWidth,snakeWidth);
             }
         }
-        console.log(event.data);
     };
 
     $(document).on("keypress",function(event){

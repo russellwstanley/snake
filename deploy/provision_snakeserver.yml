@@ -1,0 +1,9 @@
+---
+- name: provision snake server
+  hosts: snakeserver 
+  tasks:
+    - apt : pkg=default-jre state=latest
+    - command: iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 9000 
+
+
+
