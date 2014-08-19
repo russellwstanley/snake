@@ -26,6 +26,7 @@ class PlayerActor(out:ActorRef) extends Actor with GameSpace{
 
   var moveQueue : List[Direction] = List()
   var snake = Snake(List(Point(0,0),Point(0,1),Point(0,2),Point(0,3)),Forwards)
+  val lastMessage: ReportSnakesMsg = null
 
   implicit val pointWrites = Json.writes[Point]
 

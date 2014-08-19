@@ -10,5 +10,7 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  ws
+  ws,
+  "com.typesafe.akka" %% "akka-actor" % "2.3.3",
+  "com.typesafe.akka" %% "akka-testkit" % "2.3.3"
 )
