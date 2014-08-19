@@ -9,15 +9,13 @@ $(document).ready(function() {
     }
     soc = new WebSocket("ws://"+wsEndpoint+"/socket");
     soc.onmessage = function(event){
-        snakes = JSON.parse(event.data);
+        points = JSON.parse(event.data);
+        console.log(event.data)
         context.clearRect(0, 0, canvas.width, canvas.height);
-        for(i=0;i<snakes.length; i++){
-            points = snakes[i];
-            for(j=0;j<points.length;j++){
-                xpos = points[j].x * snakeWidth;
-                ypos = points[j].y * snakeWidth;
-                context.fillRect(xpos,ypos ,snakeWidth,snakeWidth);
-            }
+        for(j=0;j<points.length;j++){
+            xpos = points[j][0] * snakeWidth;
+            ypos = points[j][1] * snakeWidth;
+            context.fillRect(xpos,ypos ,snakeWidth,snakeWidth);
         }
     };
 

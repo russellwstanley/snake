@@ -3,10 +3,15 @@ package actors
 import play.api.Play.current
 import akka.actor.{Terminated, Actor, ActorRef}
 import game._
-import play.api.libs.json.Json
+import play.api.libs.json._
 import play.api.libs.concurrent.Akka
 import play.api.Logger
 import scala.util.Random
+import play.api.libs.functional.syntax._
+import game.Point
+import play.api.libs.json.JsArray
+import game.Snake
+import akka.actor.Terminated
 
 /**
  * Created by russell on 10/08/14.
@@ -27,7 +32,11 @@ class PlayerActor(out:ActorRef) extends Actor with GameSpace{
   var moveQueue : List[Direction] = List()
   var snake = Snake(List(Point(0,0),Point(0,1),Point(0,2),Point(0,3)),Forwards)
 
-  implicit val pointWrites = Json.writes[Point]
+  implicit val pointWrites : Writes[Point] = new Writes[Point] {
+    def writes(p: Point): JsValue = new JsArray(List(new JsNumber(p.x), new JsNumber(p.y)))
+  }
+
+
 
   def receive = {
     case "l" => moveQueue = moveQueue :+ Left
@@ -47,10 +56,10 @@ class PlayerActor(out:ActorRef) extends Actor with GameSpace{
       snake = mySnake
       if(snake.isAlive) {
         //TODO this is ugly
-        out ! Json.toJson((snake.points :: aliveSnakesToPoints(otherSnakes)) :+ food )
+        out ! Json.toJson(((snake.points :: aliveSnakesToPoints(otherSnakes)) :+ food).flatten )
       }
       else  {
-        out ! Json.toJson(aliveSnakesToPoints(otherSnakes) :+ food )
+        out ! Json.toJson((aliveSnakesToPoints(otherSnakes) :+ food).flatten )
       }
     }
   }
