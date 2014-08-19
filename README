@@ -1,4 +1,8 @@
-This is your new Play application
+To Run this Application
 =================================
 
-This file will be packaged with your application, when using `activator dist`.
+./activator
+run <port> (defaults to 9000)
+
+Your appliciation will then be available on localhost:<port>
+
