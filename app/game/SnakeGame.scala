@@ -111,7 +111,7 @@ trait ProcessSnakes{
     }.toSet ++ food
     val availableSpace = space.points &~ occupiedPoints
     if(availableSpace.isEmpty) food
-    else food :+ Random.shuffle(availableSpace).head
+    else food :+ Random.shuffle(availableSpace.toSeq).head
   }
 
   def resolveCollisionsWithSnakes[T](snakes : Map[T,Snake]) : Map[T,Snake] =  {
