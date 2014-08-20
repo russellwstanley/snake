@@ -66,7 +66,7 @@ class PlayerActor(out:ActorRef) extends Actor with GameSpace{
   }
 
   override def preStart = {
-    Akka.system.actorSelection("/user/registrar") ! RegisterPlayerMsg
+    Akka.system.actorSelection("/user/game") ! RegisterPlayerMsg
   }
 }
 
@@ -79,67 +79,76 @@ object GetPlayersMsg
 object TickMsg
 case class GetPlayersResponse(players : Set[ActorRef])
 
-class Registrar extends Actor{
-  var players : Set[ActorRef] = Set()
-  def receive = {
-    case RegisterPlayerMsg => {
-      context.watch(sender)
-      players = players + sender
-    }
-    case Terminated(actor) => players = players - actor
-    case GetPlayersMsg => sender ! GetPlayersResponse(players)
-  }
-}
+//class Registrar extends Actor{
+//  var players : Set[ActorRef] = Set()
+//  def receive = {
+//    case RegisterPlayerMsg => {
+//      context.watch(sender)
+//      players = players + sender
+//    }
+//    case Terminated(actor) => players = players - actor
+//    case GetPlayersMsg => sender ! GetPlayersResponse(players)
+//  }
+//}
 
 class SnakeGameActor extends  Actor with ProcessSnakes with GameSpace{
 
   var requestedSnakes : Set[ActorRef] = Set.empty
+  var players : Set[ActorRef] = Set()
   var snakes : Map[ActorRef,Snake] = Map.empty
   var food : List[Point] = List.empty
   val chanceOfNewFood = 0.02
   val minFood = 1
   val maxFood = 5
 
+  private def isNewFood : Boolean = food.size match{
+    case s if s < minFood => true
+    case s if s >= maxFood => false
+    case _ => Random.nextFloat() < chanceOfNewFood
+  }
+
+  private def reportNextGameStateToPlayers  = {
+    val(fedSnakes,remainingFood) = resolveCollisionsWithFood(resolveCollisionsWithSnakes(snakes),food)
+    food = remainingFood
+    if (isNewFood) food  = generateNewFood(fedSnakes.values,food,space)
+    fedSnakes.foreach{
+      case(ref,snake) => ref ! ReportSnakesMsg(fedSnakes(ref),(fedSnakes - ref).values,food)
+    }
+  }
+
   def receive = waiting
 
   def waiting : Receive = {
+    case RegisterPlayerMsg => {
+      context.watch(sender)
+      players = players + sender
+    }
     case TickMsg => {
-      context.become(gatherPlayers)
-      Akka.system.actorSelection("/user/registrar") ! GetPlayersMsg
-    }
-  }
-
-  private def isNewFood : Boolean = {
-    if(food.size < minFood) true
-    if(food.size >= maxFood) false
-    else Random.nextFloat() < chanceOfNewFood
-  }
-
-  def calculateSnakes : Receive = {
-    case snake : Snake => {
-      requestedSnakes = requestedSnakes - sender
-      snakes = snakes + (sender->snake)
-      if(requestedSnakes.isEmpty) {
-        val(fedSnakes,remainingFood) = resolveCollisionsWithFood(resolveCollisionsWithSnakes(snakes),food)
-        food = remainingFood
-        if (isNewFood) food  = generateNewFood(fedSnakes.values,food,space)
-        fedSnakes.foreach{
-          case(ref,snake) => ref ! ReportSnakesMsg(fedSnakes(ref),(fedSnakes - ref).values,food)
-        }
-        context.become(waiting)
-      }
-    }
-  }
-
-  def gatherPlayers : Receive = {
-    case GetPlayersResponse(players) => {
       if(players.size > 0){
         requestedSnakes =  players
         snakes = Map.empty
         context.become(calculateSnakes)
         players.foreach(player=>player ! GetSnakesMsg)
       }
-      else{
+    }
+    case Terminated(actor) => players = players - actor
+  }
+
+
+  def calculateSnakes : Receive = {
+    case snake : Snake => {
+      requestedSnakes = requestedSnakes - sender
+      snakes = snakes + (sender->snake)
+      if(requestedSnakes.isEmpty) {
+        reportNextGameStateToPlayers
+        context.become(waiting)
+      }
+    }
+    case Terminated(actor) => {
+      players = players - actor
+      requestedSnakes = requestedSnakes - actor
+      if(requestedSnakes.isEmpty) {
+        reportNextGameStateToPlayers
         context.become(waiting)
       }
     }
