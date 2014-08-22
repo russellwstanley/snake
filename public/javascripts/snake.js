@@ -11,11 +11,19 @@ $(document).ready(function() {
     soc.onmessage = function(event){
         points = JSON.parse(event.data);
         console.log(event.data)
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        for(j=0;j<points.length;j++){
-            xpos = points[j][0] * snakeWidth;
-            ypos = points[j][1] * snakeWidth;
+        //context.clearRect(0, 0, canvas.width, canvas.height);
+        addedPoints = points[0]
+        deletedPoints = points[1]
+        //TODO remove duplication
+        for(j=0;j<addedPoints.length;j++){
+            xpos = addedPoints[j][0] * snakeWidth;
+            ypos = addedPoints[j][1] * snakeWidth;
             context.fillRect(xpos,ypos ,snakeWidth,snakeWidth);
+        }
+        for(i=0;i<deletedPoints.length;i++){
+            xpos = deletedPoints[i][0] * snakeWidth;
+            ypos = deletedPoints[i][1] * snakeWidth;
+            context.clearRect(xpos,ypos ,snakeWidth,snakeWidth);
         }
     };
 
