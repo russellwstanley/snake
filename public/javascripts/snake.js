@@ -38,5 +38,11 @@ $(document).ready(function() {
             console.log("unsupported keypress");
         }
     });
+
+    document.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        var touch = e.touches[0];
+        alert(touch.pageX + " - " + touch.pageY);
+    }, false);
 });
 
