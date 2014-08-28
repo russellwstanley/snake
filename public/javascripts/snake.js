@@ -10,20 +10,15 @@ $(document).ready(function() {
     soc = new WebSocket("ws://"+wsEndpoint+"/socket");
     soc.onmessage = function(event){
         points = JSON.parse(event.data);
-        console.log(event.data)
-        //context.clearRect(0, 0, canvas.width, canvas.height);
-        addedPoints = points[0]
-        deletedPoints = points[1]
-        //TODO remove duplication
-        for(j=0;j<addedPoints.length;j++){
-            xpos = addedPoints[j][0] * snakeWidth;
-            ypos = addedPoints[j][1] * snakeWidth;
-            context.fillRect(xpos,ypos ,snakeWidth,snakeWidth);
-        }
-        for(i=0;i<deletedPoints.length;i++){
-            xpos = deletedPoints[i][0] * snakeWidth;
-            ypos = deletedPoints[i][1] * snakeWidth;
-            context.clearRect(xpos,ypos ,snakeWidth,snakeWidth);
+        processPoints(points[0],context.fillRect.bind(context)); //create new points
+        processPoints(points[1],context.clearRect.bind(context)); //delete old points
+    };
+
+    processPoints = function(points,action){
+        for(i=0;i<points.length;i++){
+            xpos = points[i][0] * snakeWidth;
+            ypos = points[i][1] * snakeWidth;
+            action(xpos,ypos ,snakeWidth,snakeWidth);
         }
     };
 
@@ -34,15 +29,19 @@ $(document).ready(function() {
         else if(event.keyCode == 108){
             soc.send("r");
         }
-        else{
-            console.log("unsupported keypress");
-        }
     });
 
-    document.addEventListener('touchmove', function(e) {
-        e.preventDefault();
-        var touch = e.touches[0];
-        alert(touch.pageX + " - " + touch.pageY);
-    }, false);
+    $(document).on("scrollstart",false);
+
+    $(document).on("swipeleft",function(event){
+        event.stopPropagation();
+        event.preventDefault();
+        soc.send("l");
+    });
+    $(document).on("swiperight",function(event){
+        event.stopPropagation();
+        event.preventDefault();
+        soc.send("r");
+    });
 });
 
