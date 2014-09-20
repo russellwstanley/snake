@@ -2,6 +2,9 @@ package game
 
 import scala.util.Random
 
+case class SnakeGame(name : String)
+
+
 case class Point(x:Int,y:Int){
   def upOne(implicit space : Space) = (y-1) match {
     case newY if newY >= space.upBounds => copy(y=newY)

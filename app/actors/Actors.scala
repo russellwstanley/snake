@@ -1,17 +1,17 @@
 package actors
 
 import play.api.Play.current
-import akka.actor.{Terminated, Actor, ActorRef}
+import akka.actor._
 import game._
 import play.api.libs.json._
 import play.api.libs.concurrent.Akka
-import play.api.Logger
 import scala.util.Random
-import play.api.libs.functional.syntax._
 import game.Point
 import play.api.libs.json.JsArray
+import play.api.libs.json.JsNumber
 import game.Snake
 import akka.actor.Terminated
+import play.Logger
 
 /**
  * Created by russell on 10/08/14.
@@ -25,6 +25,34 @@ trait GameSpace{
     def downBounds : Int = 60
   }
 
+}
+
+case class CreateGameMsg(name:String)
+case class GetGamesMsg()
+case class GamesListMsg(games : Iterable[SnakeGame])
+case class SnakeGameHolder(game : SnakeGame, ref : ActorRef)
+
+class GameManagerActor extends Actor{
+
+  var gameId = -1;
+  var games : Map[Int,SnakeGame] = Map.empty
+
+  def getNewGameId : Int = {
+    gameId = gameId +1
+    return gameId
+  }
+
+  def receive = {
+    case CreateGameMsg(name) => {
+      val gameId = getNewGameId
+      games = games + (gameId->SnakeGame(name))
+      //TODO should return something useful here
+      sender ! "game created"
+    }
+    case GetGamesMsg() => {
+      sender ! GamesListMsg(games.values)
+    }
+  }
 }
 
 class PlayerActor(out:ActorRef) extends Actor with GameSpace{
@@ -67,8 +95,14 @@ class PlayerActor(out:ActorRef) extends Actor with GameSpace{
   }
 
   override def preStart = {
-    Akka.system.actorSelection("/user/game") ! RegisterPlayerMsg
+    Akka.system.actorSelection("/user/"+Actors.gameName) ! RegisterPlayerMsg
   }
+}
+
+object Actors{
+  val gameManagerName = "game_manager"
+  val gameName = "game"
+  def gameManagerActor = Akka.system.actorSelection("/user/"+gameManagerName)
 }
 
 object AddSnakeRequest
