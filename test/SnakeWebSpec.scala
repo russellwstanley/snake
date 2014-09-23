@@ -13,14 +13,9 @@ class SnakeWebSpec extends PlaySpecification{
   implicit val gameReads  = Json.reads[SnakeGame]
 
   "Snake game web app" should {
-    "get games with no games created" in new WithApplication{
-      val Some(result) = route(FakeRequest(GET,"/games"))
-      contentAsJson(result) must equalTo(JsArray())
-    }
-    "get games with a game created" in new WithApplication{
+    "create game should return the id of the created game" in new WithApplication{
       Await.result(route(FakeRequest(POST,"/games").withFormUrlEncodedBody(("name"->"test"))).get, 1 second)
-      val Some(result) = route(FakeRequest(GET,"/games"))
-      contentAsJson(result).validate[List[SnakeGame]].get must equalTo(List(SnakeGame("test")))
+      pending("TODO")
     }
   }
 

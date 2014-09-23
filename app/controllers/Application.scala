@@ -28,12 +28,6 @@ object Application extends Controller {
     Ok(views.html.index("Snake"))
   }
 
-  def getGames = Action.async {
-    def futureResponse = Actors.gameManagerActor ? GetGamesMsg()
-    futureResponse.map {
-      case GamesListMsg(games) => Ok(Json.toJson(games))
-    }
-  }
 
   def newGame = Action.async { implicit request => {
 
@@ -42,14 +36,16 @@ object Application extends Controller {
       Future(BadRequest("Form Binding Failed"))
     },
     game => {
-      def futureResponse = Actors.gameManagerActor ? CreateGameMsg(game.name)
+      def futureResponse = Actors.gameManagerActor ? CreateGameMsg(game)
       futureResponse.map {
-        case s : String => Ok(s)
+        case id : Int => Created(id.toString).withHeaders(LOCATION->("games/"+id))
       }
     }
     )
   }
   }
+
+  
 
   def socket = WebSocket.acceptWithActor[String, JsValue] {
     request => out => Props(new PlayerActor(out))
