@@ -51,8 +51,8 @@ trait Space{
 
 case class Player(moveQueue : List[Direction], snake : Snake)(implicit space : Space){
   def pushMove(move : Direction) : Player = copy(moveQueue = moveQueue :+ move)
-  def popMove : Player = moveQueue match {
-    case Nil => copy()
+  def tick : Player = moveQueue match {
+    case Nil => copy(snake = snake.tick)
     case _ => copy (moveQueue.drop (1), snake.copy (facing = moveQueue.head).tick)
   }
 }

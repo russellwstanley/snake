@@ -1,15 +1,24 @@
 package actors
 
-import akka.actor.{Terminated, ActorRef, Actor}
-import game.{Point, Snake, ProcessSnakes}
+import akka.actor.{ActorRef, Actor}
+import game._
 import scala.util.Random
-import akka.routing.{Routee, BroadcastRoutingLogic, Router}
+import akka.routing.Routee
+import game.Player
+import game.Snake
+import game.Point
+import akka.actor.Terminated
+import scala.Some
 
 class SnakeGameActor extends  Actor with ProcessSnakes with GameSpace{
 
-  var requestedSnakes : Set[ActorRef] = Set.empty
-  var players : Set[ActorRef] = Set()
-  var snakes : Map[ActorRef,Snake] = Map.empty
+  var initialSnake = Snake(List(Point(0,0),Point(0,1),Point(0,2),Point(0,3)))
+  var players : Map[ActorRef,Player] = Map.empty
+  def snakes : Map[ActorRef,Snake] = {
+    players.map{
+      case (ref,player) => (ref,player.snake)
+    }
+  }
   var food : List[Point] = List.empty
   val chanceOfNewFood = 0.02
   val minFood = 1
@@ -22,51 +31,37 @@ class SnakeGameActor extends  Actor with ProcessSnakes with GameSpace{
   }
 
   private def reportNextGameStateToPlayers  = {
-    val(fedSnakes,remainingFood) = resolveCollisionsWithFood(resolveCollisionsWithSnakes(snakes),food)
+    val(newSnakes,remainingFood) = resolveCollisionsWithFood(resolveCollisionsWithSnakes(snakes),food)
     food = remainingFood
-    if (isNewFood) food  = generateNewFood(fedSnakes.values,food,space)
+    if (isNewFood) food  = generateNewFood(newSnakes.values,food,space)
     //TODO could use a broadcast router here rather than going through all the players
-    fedSnakes.foreach{
-      case(ref,snake) => ref ! ReportSnakesMsg(fedSnakes(ref),(fedSnakes - ref).values,food)
+    newSnakes.foreach{
+      case(ref,newSnake) => {
+        players = players + (ref -> players(ref).copy(snake=newSnake))
+        ref ! ReportSnakesMsg(newSnakes(ref),(newSnakes - ref).values,food)
+      }
     }
   }
 
-  def receive = waiting
-
-  def waiting : Receive = {
+  def receive = {
     case RegisterPlayerMsg => {
       context.watch(sender)
-      players = players + sender
+      players = players + (sender->Player(List.empty,initialSnake))
     }
     case TickMsg => {
-      if(players.size > 0){
-        requestedSnakes =  players
-        snakes = Map.empty
-        context.become(calculateSnakes)
-        players.foreach(player=>player ! GetSnakesMsg)
+      //move all players
+      players = players.map{
+        case (ref,player) => (ref,player.tick)
       }
+      reportNextGameStateToPlayers
     }
+    case move: Direction => players.get(sender) match {
+      case Some(player) => players = players + (sender->player.pushMove(move))
+    }
+
     case Terminated(actor) => players = players - actor
   }
 
 
-  def calculateSnakes : Receive = {
-    case snake : Snake => {
-      requestedSnakes = requestedSnakes - sender
-      snakes = snakes + (sender->snake)
-      if(requestedSnakes.isEmpty) {
-        reportNextGameStateToPlayers
-        context.become(waiting)
-      }
-    }
-    case Terminated(actor) => {
-      players = players - actor
-      requestedSnakes = requestedSnakes - actor
-      if(requestedSnakes.isEmpty) {
-        reportNextGameStateToPlayers
-        context.become(waiting)
-      }
-    }
-  }
 }
 

@@ -151,14 +151,14 @@ class SnakeGameTest extends Specification {
       implicit val snakeSpace = space
       Player(List.empty,leftSnake(Forwards)).pushMove(Left) must equalTo(Player(List(Left),leftSnake(Forwards)))
     }
-    "pop move with no move queue should return the player unchanged" in new SnakeEnv{
+    "tick with no move queue should return the player unchanged" in new SnakeEnv{
       implicit val snakeSpace = space
-      Player(List.empty,leftSnake(Forwards)).popMove must equalTo(Player(List.empty,leftSnake(Forwards)))
+      Player(List.empty,leftSnake(Forwards)).tick must equalTo(Player(List.empty,leftSnake(Forwards).tick))
     }
-    "pop move with moves should return a new player with the move applied to the snake" in new SnakeEnv{
+    "tick with moves should return a new player with the move applied to the snake" in new SnakeEnv{
       implicit val snakeSpace = space
       val snake = leftSnake(Forwards)
-      Player(List.empty,snake).pushMove(Left).popMove must equalTo(Player(List.empty,Snake(List(snake.head.downOne,snake.head),Forwards)))
+      Player(List.empty,snake).pushMove(Left).tick must equalTo(Player(List.empty,snake.copy(facing = Left).tick))
     }
   }
   "ProcessSnakes" should{
