@@ -2,63 +2,42 @@ package actors
 
 import akka.actor.{ActorRef, Actor}
 import game._
-import scala.util.Random
-import akka.routing.Routee
 import game.Player
-import game.Snake
-import game.Point
 import akka.actor.Terminated
 import scala.Some
+import play.api.Logger
 
-class SnakeGameActor extends  Actor with ProcessSnakes with GameSpace{
+class SnakeGameActor extends Actor {
 
-  var initialSnake = Snake(List(Point(0,0),Point(0,1),Point(0,2),Point(0,3)))
-  var players : Map[ActorRef,Player] = Map.empty
-  def snakes : Map[ActorRef,Snake] = {
-    players.map{
-      case (ref,player) => (ref,player.snake)
-    }
-  }
-  var food : List[Point] = List.empty
-  val chanceOfNewFood = 0.02
-  val minFood = 1
-  val maxFood = 5
+  var players: Map[ActorRef, Player] = Map.empty
+  var game = SnakeGame[ActorRef]("testid", "test")
 
-  private def isNewFood : Boolean = food.size match{
-    case s if s < minFood => true
-    case s if s >= maxFood => false
-    case _ => Random.nextFloat() < chanceOfNewFood
-  }
-
-  private def reportNextGameStateToPlayers  = {
-    val(newSnakes,remainingFood) = resolveCollisionsWithFood(resolveCollisionsWithSnakes(snakes),food)
-    food = remainingFood
-    if (isNewFood) food  = generateNewFood(newSnakes.values,food,space)
-    //TODO could use a broadcast router here rather than going through all the players
-    newSnakes.foreach{
-      case(ref,newSnake) => {
-        players = players + (ref -> players(ref).copy(snake=newSnake))
-        ref ! ReportSnakesMsg(newSnakes(ref),(newSnakes - ref).values,food)
-      }
+  //would be cleaner with mutable state
+  def nextPlayerMoves: (Map[ActorRef, Player], Map[ActorRef, Direction]) = {
+    players.foldLeft(Map[ActorRef, Player](), Map[ActorRef, Direction]()) {
+      case ((newPlayers, moves), (id, player)) =>
+        val move = player.move
+        val newPlayer = player.popMove
+        ((newPlayers + (id -> newPlayer)), moves + (id -> move))
     }
   }
 
   def receive = {
     case RegisterPlayerMsg => {
       context.watch(sender)
-      players = players + (sender->Player(List.empty,initialSnake))
+      players = players + (sender->Player())
+      game = game + sender
     }
     case TickMsg => {
-      //move all players
-      players = players.map{
-        case (ref,player) => (ref,player.tick)
-      }
-      reportNextGameStateToPlayers
+      //the immutable style makes this ungainly
+      val (newPlayers,moves) = nextPlayerMoves
+      players = newPlayers
+      game = game.applyMoves(moves).tick
+      players.keys.foreach(ref => ref ! ReportSnakesMsg(game.snakes(ref),(game.snakes - ref).values, game.food))
     }
     case move: Direction => players.get(sender) match {
-      case Some(player) => players = players + (sender->player.pushMove(move))
+      case Some(player) => players = players + (sender -> player.pushMove(move))
     }
-
     case Terminated(actor) => players = players - actor
   }
 

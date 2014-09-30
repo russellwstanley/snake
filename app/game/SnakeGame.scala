@@ -2,7 +2,64 @@ package game
 
 import scala.util.Random
 
-case class SnakeGame(name : String)
+trait FoodGeneration{
+
+  def isNewFood : Boolean
+}
+
+case class SnakeGame[T](id : String, name : String, snakes : Map[T,Snake] = Map[T,Snake](), food : List[Point] = Nil) extends ProcessSnakes  with FoodGeneration {
+
+
+  implicit val space = new Space  {
+    def leftBounds : Int = 0
+    def rightBounds : Int = 60
+    def upBounds : Int = 0
+    def downBounds : Int = 60
+  }
+
+  def applyMoves(moves : Map[T,Direction]) : SnakeGame[T] = {
+    def movedSnakes = snakes.map{
+      case(key,snake) => moves.get(key) match {
+        case None => key->snake
+        case Some(direction) => key->snake.copy(facing = direction)
+      }
+    }
+    copy(snakes = movedSnakes)
+  }
+
+  val newSnake = Snake(List(Point(0,0),Point(1,0))) //TODO need to generate a random snake that does not collide with others
+
+
+  def + (id : T) : SnakeGame[T] = {
+    copy(snakes = snakes + (id -> newSnake))
+  }
+
+  def newFood(snakes : Iterable[Snake], food : List[Point] ) : List[Point] = {
+    if(isNewFood) return generateNewFood(snakes,food)
+    else return food
+  }
+
+  def tick(): SnakeGame[T] = {
+    //get new snakes after eating food and resolving collisions
+    val(newSnakes,remainingFood) = resolveCollisionsWithFood(resolveCollisionsWithSnakes(snakes.map({
+      case (key,snake) => (key,snake.tick)
+    })),food)
+
+    //generate new food if necessary
+    val generatedFood = newFood(newSnakes.values,remainingFood)
+    this.copy(snakes=newSnakes,food=generatedFood)
+  }
+    val chanceOfNewFood = 0.02
+    val minFood = 1
+    val maxFood = 5
+
+    def isNewFood : Boolean = food.size match{
+      case s if s < minFood => true
+      case s if s >= maxFood => false
+      case _ => Random.nextFloat() < chanceOfNewFood
+    }
+
+}
 
 
 case class Point(x:Int,y:Int){
@@ -49,11 +106,15 @@ trait Space{
   }
 }
 
-case class Player(moveQueue : List[Direction], snake : Snake)(implicit space : Space){
+case class Player(moveQueue : List[Direction] = Nil){
   def pushMove(move : Direction) : Player = copy(moveQueue = moveQueue :+ move)
-  def tick : Player = moveQueue match {
-    case Nil => copy(snake = snake.tick)
-    case _ => copy (moveQueue.drop (1), snake.copy (facing = moveQueue.head).tick)
+  def popMove : Player = moveQueue match {
+    case Nil => copy()
+    case head :: tail => copy(moveQueue = tail)
+  }
+  def move : Direction = moveQueue match {
+    case Nil => Forwards
+    case head :: tail => head
   }
 }
 
@@ -114,7 +175,7 @@ trait ProcessSnakes{
 
 
 
-  def generateNewFood(snakes : Iterable[Snake], food : List[Point], space : Space) : List[Point] = {
+  def generateNewFood(snakes : Iterable[Snake], food : List[Point])(implicit space : Space) : List[Point] = {
     val occupiedPoints : Set[Point] = snakes.flatMap{
       case snake if snake.isAlive => snake.points
       case _ => List.empty

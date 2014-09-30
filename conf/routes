@@ -5,6 +5,8 @@
 # Home page
 GET     /                           controllers.Application.index
 GET /socket                         controllers.Application.socket
+GET /games                          controllers.Application.games
+GET /gamessocket                    controllers.Application.watchGames
 POST /games                         controllers.Application.newGame
 
 # Map static resources from the /public folder to the /assets URL path

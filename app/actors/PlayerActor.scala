@@ -19,6 +19,7 @@ class PlayerActor(out:ActorRef) extends Actor with GameSpace{
     def writes(p: Point): JsValue = new JsArray(List(new JsNumber(p.x), new JsNumber(p.y)))
   }
 
+  //TODO should probably be making these calculations once per game rather than per player
 
   //TODO more efficient to do this with a fold?
   def aliveSnakesToPoints(snakes : Iterable[Snake]) : Set[Point] =
@@ -38,7 +39,6 @@ class PlayerActor(out:ActorRef) extends Actor with GameSpace{
   }
 
   override def preStart = {
-    Logger.debug(self.path.toString)
     Actors.gameActor ! RegisterPlayerMsg
   }
 }

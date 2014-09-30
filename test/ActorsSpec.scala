@@ -16,10 +16,10 @@ class ActorsSpec extends Specification{
       implicit val system = Akka.system
       implicit val timeout = akka.util.Timeout(2,TimeUnit.SECONDS)
       val manager = TestActorRef[GameManagerActor]
-      manager.underlyingActor.receive(CreateGameMsg(SnakeGame("test")))
-      manager.underlyingActor.games.contains(0) must beTrue
-      manager.underlyingActor.receive(CreateGameMsg(SnakeGame("test")))
-      manager.underlyingActor.games.contains(1) must beTrue
+      manager.underlyingActor.receive(CreateGameMsg("test"))
+      manager.underlyingActor.games.size must beEqualTo(1)
+      manager.underlyingActor.receive(CreateGameMsg("test"))
+      manager.underlyingActor.games.size must beEqualTo(2)
     }
     "get games" in new WithApplication{
       implicit val system = Akka.system

@@ -42,7 +42,7 @@ class SnakeEnv extends Scope with ProcessSnakes{
 }
 
 @RunWith(classOf[JUnitRunner])
-class SnakeGameTest extends Specification {
+class SnakeGameSpec extends Specification {
 
   "Point" should {
     "wrap when they go over the board edge to the right" in new PointEnv{
@@ -147,22 +147,24 @@ class SnakeGameTest extends Specification {
 
   }
   "Player" should {
-    "push move should add a move to the move queue" in new SnakeEnv{
-      implicit val snakeSpace = space
-      Player(List.empty,leftSnake(Forwards)).pushMove(Left) must equalTo(Player(List(Left),leftSnake(Forwards)))
+    "push move should add a move to the move queue" in {
+      Player().pushMove(Left) must equalTo(Player(List(Left)))
     }
-    "tick with no move queue should return the player unchanged" in new SnakeEnv{
-      implicit val snakeSpace = space
-      Player(List.empty,leftSnake(Forwards)).tick must equalTo(Player(List.empty,leftSnake(Forwards).tick))
+    "pop with no move queue should return the player unchanged" in {
+      Player().popMove must equalTo(Player(List.empty))
     }
-    "tick with moves should return a new player with the move applied to the snake" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val snake = leftSnake(Forwards)
-      Player(List.empty,snake).pushMove(Left).tick must equalTo(Player(List.empty,snake.copy(facing = Left).tick))
+    "pop with moves should return a new player with the move removed" in {
+      Player().pushMove(Left).popMove must equalTo(Player(List.empty))
+    }
+    "getting move should return the move" in {
+      Player().pushMove(Left).pushMove(Right).move must equalTo(Left)
+    }
+    "getting move with no move should return forwards" in {
+      Player().move must equalTo(Forwards)
     }
   }
   "ProcessSnakes" should{
-    "resolve collisions with no snakes" in new SnakeEnv{
+    "gresolve collisions with no snakes" in new SnakeEnv{
       implicit val snakeSpace = space
       val snakes : Map[String,Snake] = Map()
       resolveCollisionsWithSnakes(snakes) must equalTo(snakes)
@@ -234,14 +236,14 @@ class SnakeGameTest extends Specification {
       newSnakes("s1").hasEaten must beFalse
     }
     "food should be generated in available space" in new SnakeEnv{
-      val smallSpace = new Space {
+      implicit val smallSpace = new Space {
         override def downBounds: Int = 0
         override def upBounds: Int = 0
         override def rightBounds: Int = 2
         override def leftBounds: Int = 0
       }
       val snake1 = Snake(List(Point(0,0),Point(1,0)))
-      val newFood = generateNewFood(List(snake1),List.empty,smallSpace)
+      val newFood = generateNewFood(List(snake1),List.empty)
       newFood must beEqualTo(List(Point(2,0)))
 
     }
@@ -267,6 +269,32 @@ class SnakeGameTest extends Specification {
       }
       nonEmptySpace.points must equalTo(Set(Point(0,0),Point(0,1),Point(1,0),Point(1,1)))
 
+
+    }
+  }
+
+  "SnakeGame" should {
+    "tick when empty with no food generated" in new SnakeEnv {
+      trait NeverMakeFood extends FoodGeneration{
+        override def isNewFood: Boolean = false
+      }
+      val game = new SnakeGame[String]("someid","aname") with NeverMakeFood
+      game.tick must equalTo(game)
+    }
+    "tick when empty with food generated" in new SnakeEnv {
+      trait AlwawsMakeNewFood extends FoodGeneration{
+        override def isNewFood: Boolean = true
+      }
+      val game = new SnakeGame[String]("someid","aname") with AlwawsMakeNewFood
+      game.tick.food.size must equalTo(1)
+    }
+    "add a new snake" in new SnakeEnv {
+      val game = SnakeGame[String]("someid","aname") + "snakeId"
+      game.snakes("snakeId") must not beNull
+    }
+    "apply moves" in new SnakeEnv {
+      val game = SnakeGame[String]("someid","aname") + "snakeId"
+      game.applyMoves(Map("snakeId"->Right)).snakes("snakeId").facing must equalTo(Right)
 
     }
   }

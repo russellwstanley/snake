@@ -10,11 +10,11 @@ import scala.concurrent.duration._
 @RunWith(classOf[JUnitRunner])
 class SnakeWebSpec extends PlaySpecification{
 
-  implicit val gameReads  = Json.reads[SnakeGame]
+//  implicit val gameReads  = Json.reads[SnakeGame]
 
   "Snake game web app" should {
     "create game should return the id of the created game" in new WithApplication{
-      Await.result(route(FakeRequest(POST,"/games").withFormUrlEncodedBody(("name"->"test"))).get, 1 second)
+//      Await.result(route(FakeRequest(POST,"/games").withFormUrlEncodedBody(("name"->"test"))).get, 1 second)
       pending("TODO")
     }
   }

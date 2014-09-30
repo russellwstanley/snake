@@ -30,13 +30,13 @@ object GatherMovesRequest
 case class ReportSnakesMsg(mySnake : Snake, otherSnakes : Iterable[Snake], food  :List[Point])
 object GetSnakesMsg
 object RegisterPlayerMsg
+object RegisterWatcherMsg
 object GetPlayersMsg
 object TickMsg
 case class GetPlayersResponse(players : Set[ActorRef])
-case class CreateGameMsg(game : SnakeGame)
+case class CreateGameMsg(name : String)
 case class GetGamesMsg()
-case class GamesListMsg(games : Iterable[SnakeGame])
-case class SnakeGameHolder(game : SnakeGame, ref : ActorRef)
+case class GamesListMsg(games : Set[ActorRef])
 
 
 
