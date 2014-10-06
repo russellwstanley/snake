@@ -46,7 +46,6 @@ class SnakeGameSpec extends Specification {
 
   "Point" should {
     "wrap when they go over the board edge to the right" in new PointEnv{
-
       val point = new Point(space.rightBounds, 1)
       implicit val pointSpace = space
       point.rightOne must equalTo(Point(space.leftBounds, 1))

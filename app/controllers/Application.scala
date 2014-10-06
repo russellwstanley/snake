@@ -49,15 +49,14 @@ object Application extends Controller {
 
   def game(id:String) = Action {
     Ok(views.html.game(id))
-
   }
 
   def watchGames = WebSocket.acceptWithActor[String,JsValue]{
     request => out => Props(new GamesWatcherActor(out))
-
   }
 
 
+  //TODO old
   def socket = WebSocket.acceptWithActor[String, JsValue] {
     request => out => Props(new PlayerActor("foo",out))
   }

@@ -118,6 +118,7 @@ case class Player(moveQueue : List[Direction] = Nil){
   }
 }
 
+//TODO should have class for deadsnake etc?
 case class Snake(points : List[Point],facing : Direction = Forwards, isAlive : Boolean = true, hasEaten : Boolean = false){
 
   val up = "Up"
@@ -158,6 +159,7 @@ case class Snake(points : List[Point],facing : Direction = Forwards, isAlive : B
 
 //TODO this is pretty inefficient as it has to go through the snakes twice
 //it must be possible to go through them once only
+//TODO should probably not be a trait in it's own right, consider including into game class
 trait ProcessSnakes{
 
   def resolveCollisionsWithFood[T](snakes : Map[T, Snake], food : List[Point]) : (Map[T,Snake] , List[Point]) = {
