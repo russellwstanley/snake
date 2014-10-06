@@ -36,7 +36,8 @@ object TickMsg
 case class GetPlayersResponse(players : Set[ActorRef])
 case class CreateGameMsg(name : String)
 case class GetGamesMsg()
-case class GamesListMsg(games : Set[ActorRef])
+case class GamesListMsg(games : List[GameHolder])
+case class GameHolder(name: String, ref : ActorRef)
 
 
 

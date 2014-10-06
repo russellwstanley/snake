@@ -6,18 +6,10 @@
     <title></title>
 </head>
 <body>
-<script>
+<script src="assets/javascripts/jquery-2.1.1.min.js" ></script>
+<script src="assets/javascripts/gameslist.js"></script>
+<div id="games">
 
-    wsEndpoint = location.host+':9000';
-    //TODO this is ugly
-    if(location.host.indexOf(':') > -1){
-        wsEndpoint = location.host; //do not append the port if already connecting on a non default port
-    }
-    soc = new WebSocket("ws://"+wsEndpoint+"/gamessocket");
-    soc.onmessage = function(event){
-        console.log(event);
-    };
-</script>
-
+</div>
 </body>
 </html>

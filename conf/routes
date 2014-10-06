@@ -4,8 +4,9 @@
 
 # Home page
 GET     /                           controllers.Application.index
-GET /socket                         controllers.Application.socket
 GET /games                          controllers.Application.games
+GET /games/:id                      controllers.Application.game(id:String)
+GET /gamesocket/:id                 controllers.Application.gamesocket(id:String)
 GET /gamessocket                    controllers.Application.watchGames
 POST /games                         controllers.Application.newGame
 

@@ -35,12 +35,21 @@ object Application extends Controller {
     implicit request => {
       val gameData = gameForm.bindFromRequest.get
       Actors.gameManagerActor ! CreateGameMsg(gameData.name)
-      Accepted("games")
+      Redirect("games")
     }
   }
 
   def games = Action{
     Ok(views.html.games())
+  }
+
+  def gamesocket(id:String) = WebSocket.acceptWithActor[String,JsValue]{
+    request => out => Props(new PlayerActor(id,out))
+  }
+
+  def game(id:String) = Action {
+    Ok(views.html.game(id))
+
   }
 
   def watchGames = WebSocket.acceptWithActor[String,JsValue]{
@@ -50,7 +59,7 @@ object Application extends Controller {
 
 
   def socket = WebSocket.acceptWithActor[String, JsValue] {
-    request => out => Props(new PlayerActor(out))
+    request => out => Props(new PlayerActor("foo",out))
   }
 }
 

@@ -1,13 +1,15 @@
 $(document).ready(function() {
     var snakeWidth = 10;
-    var canvas = $("#canvas")[0];
+    $("canvas").each(function(i){
+    var id = $(this).attr('id');
+    var canvas = $(this)[0];
     var context = canvas.getContext("2d");
     wsEndpoint = location.host+':9000';
     //TODO this is ugly
     if(location.host.indexOf(':') > -1){
         wsEndpoint = location.host; //do not append the port if already connecting on a non default port
     }
-    soc = new WebSocket("ws://"+wsEndpoint+"/socket");
+    soc = new WebSocket("ws://"+wsEndpoint+"/gamesocket/"+id);
     soc.onmessage = function(event){
         points = JSON.parse(event.data);
         processPoints(points[0],context.fillRect.bind(context)); //create new points
@@ -43,5 +45,7 @@ $(document).ready(function() {
         event.preventDefault();
         soc.send("r");
     });
+    })
+
 });
 

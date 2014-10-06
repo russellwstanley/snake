@@ -1,5 +1,5 @@
 package actors
-
+import play.api.Play.current
 
 import akka.actor.{Actor, ActorRef}
 import game._
@@ -9,9 +9,10 @@ import game.Point
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsNumber
 import play.api.Logger
+import play.api.libs.concurrent.Akka
 
 
-class PlayerActor(out:ActorRef) extends Actor with GameSpace{
+class PlayerActor(gameId:String,out:ActorRef) extends Actor with GameSpace{
 
   var previousPoints : Set[Point] = Set.empty
 
@@ -26,8 +27,8 @@ class PlayerActor(out:ActorRef) extends Actor with GameSpace{
     snakes.filter(s => s.isAlive).map(s => s.points).flatten.toSet
 
   def receive = {
-    case "l" => Actors.gameActor ! Left
-    case "r" => Actors.gameActor ! Right
+    case "l" => Akka.system.actorSelection("/user/"+gameId)  ! Left
+    case "r" => Akka.system.actorSelection("/user/"+gameId)  ! Right
     case ReportSnakesMsg(mySnake,otherSnakes,food) => {
       val newPoints : Set[Point] = aliveSnakesToPoints(otherSnakes ++ List(mySnake)) ++ food
       val unchanged = previousPoints & newPoints
@@ -39,7 +40,7 @@ class PlayerActor(out:ActorRef) extends Actor with GameSpace{
   }
 
   override def preStart = {
-    Actors.gameActor ! RegisterPlayerMsg
+    Akka.system.actorSelection("/user/"+gameId) ! RegisterPlayerMsg
   }
 }
 

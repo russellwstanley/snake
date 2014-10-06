@@ -1,14 +1,15 @@
 package actors
 
 import akka.actor.{Props, ActorRef, Actor}
-import game.SnakeGame
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class GameManagerActor extends Actor{
 
   var gameId = -1;
-  var games : Set[ActorRef] = Set.empty
+  var games : List[GameHolder] = List.empty
   var watchers  : Set[ActorRef] = Set.empty
 
   def getNewGameId : Int = {
@@ -19,7 +20,9 @@ class GameManagerActor extends Actor{
   def receive = {
     case CreateGameMsg(name) => {
       val gameId = getNewGameId
-      games = games + Akka.system.actorOf(Props[SnakeGameActor], name = gameId.toString)
+      val game = Akka.system.actorOf(Props[SnakeGameActor], name = gameId.toString)
+      Akka.system.scheduler.schedule(0.millisecond,100.millisecond,game,TickMsg)
+      games = GameHolder(name,game) :: games
       watchers.foreach(ref => ref ! GamesListMsg(games))
       sender ! gameId
     }
