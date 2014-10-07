@@ -4,7 +4,7 @@ import play.api.Play.current
 import akka.actor.{Actor, ActorRef}
 import game._
 import play.api.libs.json._
-import game.Snake
+import game.AliveSnake
 import game.Point
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsNumber
@@ -24,7 +24,7 @@ class PlayerActor(gameId:String,out:ActorRef) extends Actor with GameSpace{
 
   //TODO more efficient to do this with a fold?
   def aliveSnakesToPoints(snakes : Iterable[Snake]) : Set[Point] =
-    snakes.filter(s => s.isAlive).map(s => s.points).flatten.toSet
+    snakes.map(s => s.points).flatten.toSet
 
   def receive = {
     case "l" => Akka.system.actorSelection("/user/"+gameId)  ! Left

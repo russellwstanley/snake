@@ -5,7 +5,7 @@ import akka.actor._
 import game._
 import play.api.libs.concurrent.Akka
 import game.Point
-import game.Snake
+import game.AliveSnake
 
 object Actors{
   val gameManagerName = "game_manager"

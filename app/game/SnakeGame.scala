@@ -7,7 +7,7 @@ trait FoodGeneration{
   def isNewFood : Boolean
 }
 
-case class SnakeGame[T](id : String, name : String, snakes : Map[T,Snake] = Map[T,Snake](), food : List[Point] = Nil) extends ProcessSnakes  with FoodGeneration {
+case class SnakeGame[T](id : String, name : String, snakes : Map[T,Snake] = Map[T,AliveSnake](), food : List[Point] = Nil) extends  FoodGeneration {
 
 
   implicit val space = new Space  {
@@ -17,37 +17,82 @@ case class SnakeGame[T](id : String, name : String, snakes : Map[T,Snake] = Map[
     def downBounds : Int = 60
   }
 
+  def resolveCollisionsWithFood[T](snakes : Map[T, AliveSnake], food : List[Point]) : (Map[T,AliveSnake] , List[Point]) = {
+    snakes.foldLeft(Map[T,AliveSnake](),food){
+      case ((snakesAcc,remainingFood), (id,snake)) => {
+        if(remainingFood.contains(snake.head)) {
+          (snakesAcc + (id->snake.copy(hasEaten = true)), remainingFood.filterNot(elem => elem == snake.head))
+        }
+        else (snakesAcc + (id->snake),remainingFood)
+
+      }
+    }
+
+  }
+
+
+
+  def generateNewFood(snakes : Iterable[Snake], food : List[Point])(implicit space : Space) : List[Point] = {
+    val occupiedPoints : Set[Point] = snakes.flatMap{
+      case AliveSnake(points,direction,hasEaten) => points
+      case DeadSnake() => List.empty
+    }.toSet ++ food
+    val availableSpace = space.points &~ occupiedPoints
+    if(availableSpace.isEmpty) food
+    else food :+ Random.shuffle(availableSpace.toSeq).head
+  }
+
+  def resolveCollisionsWithSnakes[T](snakes : Map[T,AliveSnake]) : Map[T,Snake] =  {
+    def isAlive(snake : AliveSnake, otherSnakes : Iterable[AliveSnake]) : Boolean= {
+        !snake.tail.contains(snake.head) &&
+          ! otherSnakes.exists(otherSnake => otherSnake.points.contains(snake.head))
+    }
+    snakes.map{
+      case(id,snake)=>(id -> {
+        if(isAlive(snake,(snakes - id).values)) snake
+        else DeadSnake()
+      })
+    }
+  }
+
   def applyMoves(moves : Map[T,Direction]) : SnakeGame[T] = {
     def movedSnakes = snakes.map{
-      case(key,snake) => moves.get(key) match {
-        case None => key->snake
-        case Some(direction) => key->snake.copy(facing = direction)
+      case(key,AliveSnake(points,facing,hasEaten)) => moves.get(key) match {
+        case None => key->AliveSnake(points,facing,hasEaten)
+        case Some(direction) => key->AliveSnake(points,direction,hasEaten)
       }
+      case(key,s : DeadSnake) => key->s
     }
     copy(snakes = movedSnakes)
   }
 
-  val newSnake = Snake(List(Point(0,0),Point(1,0))) //TODO need to generate a random snake that does not collide with others
+  val newSnake = AliveSnake(List(Point(0,0),Point(1,0))) //TODO need to generate a random snake that does not collide with others
 
 
   def + (id : T) : SnakeGame[T] = {
     copy(snakes = snakes + (id -> newSnake))
   }
 
-  def newFood(snakes : Iterable[Snake], food : List[Point] ) : List[Point] = {
+  def newFood(snakes : Iterable[AliveSnake], food : List[Point] ) : List[Point] = {
     if(isNewFood) return generateNewFood(snakes,food)
     else return food
   }
 
   def tick(): SnakeGame[T] = {
     //get new snakes after eating food and resolving collisions
-    val(newSnakes,remainingFood) = resolveCollisionsWithFood(resolveCollisionsWithSnakes(snakes.map({
-      case (key,snake) => (key,snake.tick)
-    })),food)
+    val aliveSnakes : Map[T,AliveSnake] = snakes.collect{
+      case (key : T,s : AliveSnake) => (key,s)
+    }
+    val snakesAfterCollisions = snakes ++ resolveCollisionsWithSnakes(snakes.collect{
+      case (key: T ,snake : AliveSnake) => (key,snake.tick)
+    })
+    val(fedSnakes,remainingFood) = resolveCollisionsWithFood(snakesAfterCollisions.collect{
+      case(key : T, snake : AliveSnake)=>(key,snake)
+    },food)
 
     //generate new food if necessary
-    val generatedFood = newFood(newSnakes.values,remainingFood)
-    this.copy(snakes=newSnakes,food=generatedFood)
+    val generatedFood = newFood(fedSnakes.values,remainingFood)
+    this.copy(snakes=snakesAfterCollisions ++ fedSnakes,food=generatedFood)
   }
     val chanceOfNewFood = 0.02
     val minFood = 1
@@ -118,8 +163,23 @@ case class Player(moveQueue : List[Direction] = Nil){
   }
 }
 
+trait Snake{
+
+  def points : List[Point]
+  def facing : Direction
+  def hasEaten : Boolean
+}
+
+case class DeadSnake() extends Snake{
+
+  override def points = Nil
+  override def facing = Forwards
+  override def hasEaten = false
+
+}
+
 //TODO should have class for deadsnake etc?
-case class Snake(points : List[Point],facing : Direction = Forwards, isAlive : Boolean = true, hasEaten : Boolean = false){
+case class AliveSnake(points : List[Point],facing : Direction = Forwards, hasEaten : Boolean = false) extends Snake{
 
   val up = "Up"
   val down = "Down"
@@ -141,7 +201,7 @@ case class Snake(points : List[Point],facing : Direction = Forwards, isAlive : B
     else points.dropRight(1)
   }
 
-  def tick(implicit space : Space):Snake = (direction,facing : Direction) match {
+  def tick(implicit space : Space):AliveSnake = (direction,facing : Direction) match {
     case (`up`,Forwards) => this.copy(head.upOne :: newTail ,facing = Forwards, hasEaten=false)
     case (`up`,Left) => this.copy(head.leftOne :: newTail,facing =  Forwards, hasEaten=false)
     case (`up`,Right) => this.copy(head.rightOne ::newTail, facing = Forwards, hasEaten=false)
@@ -157,47 +217,4 @@ case class Snake(points : List[Point],facing : Direction = Forwards, isAlive : B
   }
 }
 
-//TODO this is pretty inefficient as it has to go through the snakes twice
-//it must be possible to go through them once only
-//TODO should probably not be a trait in it's own right, consider including into game class
-trait ProcessSnakes{
-
-  def resolveCollisionsWithFood[T](snakes : Map[T, Snake], food : List[Point]) : (Map[T,Snake] , List[Point]) = {
-    snakes.foldLeft(Map[T,Snake](),food){
-      case ((snakesAcc,remainingFood), (id,snake)) => {
-        if(snake.isAlive && remainingFood.contains(snake.head)) {
-          (snakesAcc + (id->snake.copy(hasEaten = true)), remainingFood.filterNot(elem => elem == snake.head))
-        }
-        else (snakesAcc + (id->snake),remainingFood)
-
-      }
-    }
-
-  }
-
-
-
-  def generateNewFood(snakes : Iterable[Snake], food : List[Point])(implicit space : Space) : List[Point] = {
-    val occupiedPoints : Set[Point] = snakes.flatMap{
-      case snake if snake.isAlive => snake.points
-      case _ => List.empty
-    }.toSet ++ food
-    val availableSpace = space.points &~ occupiedPoints
-    if(availableSpace.isEmpty) food
-    else food :+ Random.shuffle(availableSpace.toSeq).head
-  }
-
-  def resolveCollisionsWithSnakes[T](snakes : Map[T,Snake]) : Map[T,Snake] =  {
-    def isAlive(snake : Snake, otherSnakes : Iterable[Snake]) : Boolean= {
-      if(!snake.isAlive) false
-      else {
-        !snake.tail.contains(snake.head) &&
-        ! otherSnakes.exists(otherSnake => otherSnake.isAlive &&  otherSnake.points.contains(snake.head))
-      }
-    }
-    snakes.map{
-      case(id,snake)=>(id -> snake.copy(isAlive= isAlive(snake,(snakes - id).values)))
-    }
-  }
-}
 

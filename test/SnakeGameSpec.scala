@@ -20,7 +20,7 @@ class PointEnv extends Scope{
       }
 }
 
-class SnakeEnv extends Scope with ProcessSnakes{
+class SnakeEnv extends Scope{
 
   val space = new Space {
     override def downBounds: Int = 10
@@ -32,13 +32,13 @@ class SnakeEnv extends Scope with ProcessSnakes{
     override def leftBounds: Int = 0
   }
 
-  def leftSnake(d: Direction): Snake = Snake(List(Point(0, 0), Point(1, 0)), d)
+  def leftSnake(d: Direction): AliveSnake = AliveSnake(List(Point(0, 0), Point(1, 0)), d)
 
-  def rightSnake(d: Direction): Snake = Snake(List(Point(1, 0), Point(0, 0)), d)
+  def rightSnake(d: Direction): AliveSnake = AliveSnake(List(Point(1, 0), Point(0, 0)), d)
 
-  def upSnake(d: Direction): Snake = Snake(List(Point(0, 0), Point(0, 1)), d)
+  def upSnake(d: Direction): AliveSnake = AliveSnake(List(Point(0, 0), Point(0, 1)), d)
 
-  def downSnake(d: Direction): Snake = Snake(List(Point(0, 0), Point(0, -1)), d)
+  def downSnake(d: Direction): AliveSnake = AliveSnake(List(Point(0, 0), Point(0, -1)), d)
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -79,69 +79,69 @@ class SnakeGameSpec extends Specification {
       implicit val snakeSpace = space
       val head = Point(0, 1)
       val tail = Point(0,0)
-      val snake = new Snake(List(head, tail), facing=Forwards,hasEaten = true )
-      snake.tick must equalTo(Snake(List(head.downOne,head,tail),facing=Forwards,hasEaten= false))
+      val snake = new AliveSnake(List(head, tail), facing=Forwards,hasEaten = true )
+      snake.tick must equalTo(AliveSnake(List(head.downOne,head,tail),facing=Forwards,hasEaten= false))
 
     }
     "tick with one right facing snake" in new SnakeEnv() {
       implicit val snakeSpace = space
       val snake = rightSnake(Forwards)
-      snake.tick must equalTo(Snake(List(snake.head.rightOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.rightOne, snake.head), Forwards))
     }
     "tick with one right facing snake turning left" in new SnakeEnv() {
       implicit val snakeSpace = space
       val snake = rightSnake(Left)
-      snake.tick must equalTo(Snake(List(snake.head.upOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.upOne, snake.head), Forwards))
     }
     "tick with one right facing snake turning right" in new SnakeEnv {
       implicit val snakeSpace = space
       val snake = rightSnake(Right)
-      snake.tick must equalTo(Snake(List(snake.head.downOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.downOne, snake.head), Forwards))
     }
     "tick with one left facing snake" in new SnakeEnv {
       implicit val snakeSpace = space
       val snake = leftSnake(Forwards)
-      snake.tick must equalTo(Snake(List(snake.head.leftOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.leftOne, snake.head), Forwards))
     }
     "tick with one left facing snake turning right" in new SnakeEnv {
       implicit val snakeSpace = space
       val snake = leftSnake(Right)
-      snake.tick must equalTo(Snake(List(snake.head.upOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.upOne, snake.head), Forwards))
     }
     "tick with one left facing snake turning left" in new SnakeEnv() {
       implicit val snakeSpace = space
       val snake = leftSnake(Left)
-      snake.tick must equalTo(Snake(List(snake.head.downOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.downOne, snake.head), Forwards))
     }
     "tick with one down facing snake" in new SnakeEnv() {
       implicit val snakeSpace = space
       val snake = downSnake(Forwards)
-      snake.tick must equalTo(Snake(List(snake.head.downOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.downOne, snake.head), Forwards))
     }
     "tick with one down facing snake turning left" in new SnakeEnv() {
       implicit val snakeSpace = space
       val snake = downSnake(Left)
-      snake.tick must equalTo(Snake(List(snake.head.rightOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.rightOne, snake.head), Forwards))
     }
     "tick with one down facing snake turning right" in new SnakeEnv() {
       implicit val snakeSpace = space
       val snake = downSnake(Right)
-      snake.tick must equalTo(Snake(List(snake.head.leftOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.leftOne, snake.head), Forwards))
     }
     "tick with one up facing snake" in new SnakeEnv() {
       implicit val snakeSpace = space
       val snake = upSnake(Forwards)
-      snake.tick must equalTo(Snake(List(snake.head.upOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.upOne, snake.head), Forwards))
     }
     "tick with one up facing snake turning left" in new SnakeEnv() {
       implicit val snakeSpace = space
       val snake = upSnake(Left)
-      snake.tick must equalTo(Snake(List(snake.head.leftOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.leftOne, snake.head), Forwards))
     }
     "tick with one up facing snake turning right" in new SnakeEnv() {
       implicit val snakeSpace = space
       val snake = upSnake(Right)
-      snake.tick must equalTo(Snake(List(snake.head.rightOne, snake.head), Forwards))
+      snake.tick must equalTo(AliveSnake(List(snake.head.rightOne, snake.head), Forwards))
     }
 
   }
@@ -163,89 +163,6 @@ class SnakeGameSpec extends Specification {
     }
   }
   "ProcessSnakes" should{
-    "gresolve collisions with no snakes" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val snakes : Map[String,Snake] = Map()
-      resolveCollisionsWithSnakes(snakes) must equalTo(snakes)
-    }
-    "one snake should stay alive" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val snake1 = Snake(List(Point(0,1),Point(1,1)))
-      val newSnakes = resolveCollisionsWithSnakes(Map("s1"->snake1))
-      newSnakes("s1").isAlive must beTrue
-    }
-    "one dead snake stays dead" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val snake1 = Snake(List(Point(0,1),Point(1,1)),Forwards,false)
-      val newSnakes = resolveCollisionsWithSnakes(Map("s1"->snake1))
-      newSnakes("s1").isAlive must beFalse
-    }
-    "resolve collisions with colliding snakes" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val snake1 = Snake(List(Point(0,1),Point(1,1)))
-      val snake2 = Snake(List(Point(1,1),Point(1,2)))
-      val newSnakes = resolveCollisionsWithSnakes(Map("s1"->snake1,"s2"->snake2))
-      newSnakes("s1").isAlive must beTrue
-      newSnakes("s2").isAlive must beFalse
-    }
-    "resolve collisions with yourself" in new SnakeEnv{
-      implicit val snakeSpace = space
-      //degenerate snake has collided with itself and collapsed to a point!
-      val snake = Snake(List(Point(0,0),Point(0,0)))
-      val newSnakes = resolveCollisionsWithSnakes(Map("s1"->snake))
-      newSnakes("s1").isAlive must beFalse
-    }
-    "resolve head to head collisions" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val snake1 = Snake(List(Point(0,1),Point(1,1)))
-      val snake2 = Snake(List(Point(0,1),Point(0,2)))
-      val newSnakes = resolveCollisionsWithSnakes(Map("s1"->snake1,"s2"->snake2))
-      newSnakes("s1").isAlive must beFalse
-      newSnakes("s2").isAlive must beFalse
-    }
-    "dead snakes stay dead" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val snake1 = Snake(List(Point(0,1),Point(1,1)),Forwards,false)
-      val snake2 = Snake(List(Point(1,1),Point(1,2)))
-      val newSnakes = resolveCollisionsWithSnakes(Map("s1"->snake1,"s2"->snake2))
-      newSnakes("s1").isAlive must beFalse
-      newSnakes("s2").isAlive must beTrue
-
-    }
-    "resolve collisions with food (no food)" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val snake1 = Snake(List(Point(0,1),Point(1,1)))
-      val(newSnakes,newFood) = resolveCollisionsWithFood(Map("s1"->snake1), List.empty)
-      newSnakes("s1").hasEaten must beFalse
-    }
-    "resolve collisions with food" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val food = List(Point(0,1))
-      val snake1 = Snake(List(Point(0,1),Point(1,1)))
-      val(newSnakes,newFood) = resolveCollisionsWithFood(Map("s1"->snake1), food)
-      newFood must beEmpty
-      newSnakes("s1").hasEaten must beTrue
-    }
-    "dead snakes cannot eat food" in new SnakeEnv{
-      implicit val snakeSpace = space
-      val food = List(Point(0,1))
-      val snake1 = Snake(List(Point(0,1),Point(1,1)),isAlive=false)
-      val(newSnakes,newFood) = resolveCollisionsWithFood(Map("s1"->snake1), food)
-      newFood must beEqualTo(food)
-      newSnakes("s1").hasEaten must beFalse
-    }
-    "food should be generated in available space" in new SnakeEnv{
-      implicit val smallSpace = new Space {
-        override def downBounds: Int = 0
-        override def upBounds: Int = 0
-        override def rightBounds: Int = 2
-        override def leftBounds: Int = 0
-      }
-      val snake1 = Snake(List(Point(0,0),Point(1,0)))
-      val newFood = generateNewFood(List(snake1),List.empty)
-      newFood must beEqualTo(List(Point(2,0)))
-
-    }
   }
   "Space" should {
     "Generate points correctly with empty space" in {
@@ -294,6 +211,74 @@ class SnakeGameSpec extends Specification {
     "apply moves" in new SnakeEnv {
       val game = SnakeGame[String]("someid","aname") + "snakeId"
       game.applyMoves(Map("snakeId"->Right)).snakes("snakeId").facing must equalTo(Right)
+
+    }
+    "resolve collisions with no snakes" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val game = SnakeGame[String]("someid","aname")
+      val snakes : Map[String,AliveSnake] = Map()
+      game.resolveCollisionsWithSnakes(snakes) must equalTo(snakes)
+    }
+    "one snake should stay alive" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val game = SnakeGame[String]("someid","aname")
+      val snake1 = AliveSnake(List(Point(0,1),Point(1,1)))
+      val newSnakes = game.resolveCollisionsWithSnakes(Map("s1"->snake1))
+      newSnakes("s1").isInstanceOf[AliveSnake] must beTrue
+    }
+    "resolve collisions with colliding snakes" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val game = SnakeGame[String]("someid","aname")
+      val snake1 = AliveSnake(List(Point(0,1),Point(1,1)))
+      val snake2 = AliveSnake(List(Point(1,1),Point(1,2)))
+      val newSnakes = game.resolveCollisionsWithSnakes(Map("s1"->snake1,"s2"->snake2))
+      newSnakes("s1").isInstanceOf[AliveSnake] must beTrue
+      newSnakes("s2").isInstanceOf[AliveSnake] must beFalse
+    }
+    "resolve collisions with yourself" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val game = SnakeGame[String]("someid","aname")
+      //degenerate snake has collided with itself and collapsed to a point!
+      val snake = AliveSnake(List(Point(0,0),Point(0,0)))
+      val newSnakes = game.resolveCollisionsWithSnakes(Map("s1"->snake))
+      newSnakes("s1").isInstanceOf[AliveSnake] must beFalse
+    }
+    "resolve head to head collisions" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val game = SnakeGame[String]("someid","aname")
+      val snake1 = AliveSnake(List(Point(0,1),Point(1,1)))
+      val snake2 = AliveSnake(List(Point(0,1),Point(0,2)))
+      val newSnakes = game.resolveCollisionsWithSnakes(Map("s1"->snake1,"s2"->snake2))
+      newSnakes("s1").isInstanceOf[AliveSnake] must beFalse
+      newSnakes("s2").isInstanceOf[AliveSnake] must beFalse
+    }
+    "resolve collisions with food (no food)" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val game = SnakeGame[String]("someid","aname")
+      val snake1 = AliveSnake(List(Point(0,1),Point(1,1)))
+      val(newSnakes,newFood) = game.resolveCollisionsWithFood(Map("s1"->snake1), List.empty)
+      newSnakes("s1").hasEaten must beFalse
+    }
+    "resolve collisions with food" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val game = SnakeGame[String]("someid","aname")
+      val food = List(Point(0,1))
+      val snake1 = AliveSnake(List(Point(0,1),Point(1,1)))
+      val(newSnakes,newFood) = game.resolveCollisionsWithFood(Map("s1"->snake1), food)
+      newFood must beEmpty
+      newSnakes("s1").hasEaten must beTrue
+    }
+    "food should be generated in available space" in new SnakeEnv{
+      implicit val smallSpace = new Space {
+        override def downBounds: Int = 0
+        override def upBounds: Int = 0
+        override def rightBounds: Int = 2
+        override def leftBounds: Int = 0
+      }
+      val snake1 = AliveSnake(List(Point(0,0),Point(1,0)))
+      val game = SnakeGame[String]("someid","aname")
+      val newFood = game.generateNewFood(List(snake1),List.empty)
+      newFood must beEqualTo(List(Point(2,0)))
 
     }
   }
