@@ -7,6 +7,7 @@ trait FoodGeneration{
   def isNewFood : Boolean
 }
 
+
 case class SnakeGame[T](id : String, name : String, snakes : Map[T,Snake] = Map[T,AliveSnake](), food : List[Point] = Nil) extends  FoodGeneration {
 
 
