@@ -11,8 +11,14 @@ $(document).ready(function() {
     soc.onmessage = function(event){
         gamesMsg = JSON.parse(event.data);
         for (var i = 0; i < gamesMsg.length ; i++) {
-            if(!(gamesMsg[i] in games)){
-                gamesElem.append("<a href=games/"+gamesMsg[i].id+">"+gamesMsg[i].name+"</a>");
+            gameId = gamesMsg[i].id;
+            gameName = gamesMsg[i].name;
+            if(!(gameId in games)){
+                gamesElem.append("<a href=games/"+gameId+" style=\"display:block\">"+gameName+"</a>");
+//                gameSocket = new WebSocket("ws://"+wsEndpoint+"/gamesocket/"+gameId);
+//                games[gameId] = gameSocket
+
+
             }
         }
     };
