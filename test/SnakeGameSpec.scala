@@ -281,6 +281,65 @@ class SnakeGameSpec extends Specification {
       newFood must beEqualTo(List(Point(2,0)))
 
     }
+    "eat food" in new SnakeEnv{
+
+    }
+    "feedsnakes with no food and no snakes should return an empty game" in new SnakeEnv{
+      pending("TODO")
+      //SnakeGame.feedSnakes(GameState[String](Map.empty,Nil)) must equalTo(GameState[String](Map.empty,Nil))
+    }
+    "feedsnakes with no food should return the same state" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val snake1 = AliveSnake(List(Point(0,1),Point(1,1)))
+      val state = GameState[String](Map("s1"->snake1),Set.empty)
+      SnakeGame.feedSnakes(state) must equalTo(state)
+    }
+    "feedsnakes with food should feed snakes" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val game = SnakeGame[String]("someid","aname")
+      val food = Set(Point(0,1))
+      val snake1 = AliveSnake(List(Point(0,1),Point(1,1)))
+      val initialState = GameState[String](Map("s1"->snake1),food)
+      SnakeGame.feedSnakes(initialState).food must beEmpty
+      SnakeGame.feedSnakes(initialState).snakes("s1").hasEaten must beTrue
+    }
+    "feed snakes with no food to be eaten should return the same state" in new SnakeEnv{
+      implicit val snakeSpace = space
+      val game = SnakeGame[String]("someid","aname")
+      val food = Set(Point(2,3))
+      val snake1 = AliveSnake(List(Point(0,1),Point(1,1)))
+      val initialState = GameState[String](Map("s1"->snake1),food)
+      SnakeGame.feedSnakes(initialState).food must equalTo(food)
+      SnakeGame.feedSnakes(initialState).snakes("s1").hasEaten must beFalse
+    }
+
+
+  }
+  "GameState" should {
+    "return liveSnakes when empty" in new SnakeEnv{
+      val gameState = new GameState[String](Map.empty,Set())
+      gameState.aliveSnakes must equalTo(Map.empty)
+    }
+    "return livesnakes when not empty" in new SnakeEnv{
+      val gameState = new GameState[String](Map("alive"->AliveSnake(List())),Set.empty)
+      gameState.aliveSnakes must equalTo(Map("alive"->AliveSnake(List())))
+    }
+    "return deadsnakes when empty" in new SnakeEnv{
+      val gameState = new GameState[String](Map.empty,Set())
+      gameState.deadSnakes must equalTo(Map.empty)
+
+    }
+    "return dead snakes when not empty" in new SnakeEnv{
+      val gameState = new GameState[String](Map("dead"->DeadSnake()),Set.empty)
+      gameState.deadSnakes must equalTo(Map("dead"->DeadSnake()))
+    }
+    "separate out alive and dead snakes" in new SnakeEnv{
+      val gameState = new GameState[String](Map("alive"->AliveSnake(List.empty),"dead"->DeadSnake()),Set.empty)
+      gameState.deadSnakes must equalTo(Map("dead"->DeadSnake()))
+      gameState.aliveSnakes must equalTo(Map("alive"->AliveSnake(List())))
+
+
+    }
   }
 
 
