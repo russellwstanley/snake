@@ -15,8 +15,8 @@ $(document).ready(function() {
             gameName = gamesMsg[i].name;
             if(!(gameId in games)){
                 gamesElem.append("<a href=games/"+gameId+" style=\"display:block\">"+gameName+"</a>");
-                gameSocket = new WebSocket("ws://"+wsEndpoint+"/gamesocket/"+gameId);
-                games[gameId] = gameSocket
+//                gameSocket = new WebSocket("ws://"+wsEndpoint+"/gamesocket/"+gameId);
+//                games[gameId] = gameSocket
 
 
             }

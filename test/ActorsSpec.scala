@@ -1,4 +1,4 @@
-import actors.{GamesListMsg, GetGamesMsg, CreateGameMsg, GameManagerActor}
+import actors.{GamesListMsg,GetGamesMsg, CreateGameMsg, GameManagerActor}
 import akka.testkit.TestActorRef
 import game.SnakeGame
 import java.util.concurrent.TimeUnit

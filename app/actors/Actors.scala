@@ -27,7 +27,7 @@ trait GameSpace{
 
 object AddSnakeRequest
 object GatherMovesRequest
-case class ReportSnakesMsg(mySnake : Snake, otherSnakes : Iterable[Snake], food  :List[Point])
+case class ReportStateMsg(state : GameState[ActorRef] )
 object GetSnakesMsg
 object RegisterPlayerMsg
 object RegisterWatcherMsg

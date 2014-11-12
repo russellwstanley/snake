@@ -29,8 +29,8 @@ class PlayerActor(gameId:String,out:ActorRef) extends Actor with GameSpace{
   def receive = {
     case "l" => Akka.system.actorSelection("/user/"+gameId)  ! Left
     case "r" => Akka.system.actorSelection("/user/"+gameId)  ! Right
-    case ReportSnakesMsg(mySnake,otherSnakes,food) => {
-      val newPoints : Set[Point] = aliveSnakesToPoints(otherSnakes ++ List(mySnake)) ++ food
+    case ReportStateMsg(state) => {
+      val newPoints : Set[Point] = state.snakePoints.toSet ++ state.food
       val unchanged = previousPoints & newPoints
       val added = newPoints &~ unchanged
       val deleted = previousPoints &~ unchanged

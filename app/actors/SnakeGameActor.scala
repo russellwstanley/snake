@@ -26,19 +26,22 @@ class SnakeGameActor extends Actor {
     case RegisterPlayerMsg => {
       context.watch(sender)
       players = players + (sender->Player())
-      game = game + sender
+      game = game.copy(state = game.state + sender)
     }
     case TickMsg => {
       //the immutable style makes this ungainly
       val (newPlayers,moves) = nextPlayerMoves
       players = newPlayers
-      game = game.applyMoves(moves).tick
-      players.keys.foreach(ref => ref ! ReportSnakesMsg(game.snakes(ref),(game.snakes - ref).values, game.food))
+      game = game.next(moves)
+      players.keys.foreach(ref => ref ! ReportStateMsg(game.state))
     }
     case move: Direction => players.get(sender) match {
       case Some(player) => players = players + (sender -> player.pushMove(move))
+      case None => 
     }
-    case Terminated(actor) => players = players - actor
+    case Terminated(actor) => {
+      players = players - actor
+    }
   }
 
 
