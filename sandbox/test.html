@@ -1,0 +1,20 @@
+<html>
+
+<script>
+
+holder = {};
+for(i = 0 ; i < 10; i++){
+    var j = i + 2
+    holder["function"+i] = function(){
+        return j + 1;
+    }
+}
+
+console.log(holder['function0']())
+console.log(holder['function1']())
+console.log(holder['function2']())
+console.log(holder['function3']())
+
+</script>
+
+</html>

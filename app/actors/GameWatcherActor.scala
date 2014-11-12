@@ -1,14 +1,12 @@
 package actors
-import play.api.Play.current
 import akka.actor.{Actor, ActorRef}
-import game._
 import play.api.libs.json._
-import game.AliveSnake
+import play.api.Play.current
 import game.Point
 import play.api.libs.concurrent.Akka
+import play.api.Logger
 
-
-class PlayerActor(gameId:String,out:ActorRef) extends Actor{
+class GameWatcherActor(gameId:String,out:ActorRef) extends Actor {
 
   var previousPoints : Set[Point] = Set.empty
 
@@ -16,9 +14,9 @@ class PlayerActor(gameId:String,out:ActorRef) extends Actor{
     def writes(p: Point): JsValue = new JsArray(List(new JsNumber(p.x), new JsNumber(p.y)))
   }
 
+  //TODO duplication with PlayerActor
   def receive = {
-    case "l" => Akka.system.actorSelection("/user/"+gameId)  ! Left
-    case "r" => Akka.system.actorSelection("/user/"+gameId)  ! Right
+    case "foo" =>
     case ReportStateMsg(state) => {
       val newPoints : Set[Point] = state.snakePoints.toSet ++ state.food
       val unchanged = previousPoints & newPoints
@@ -30,7 +28,7 @@ class PlayerActor(gameId:String,out:ActorRef) extends Actor{
   }
 
   override def preStart = {
-    Akka.system.actorSelection("/user/"+gameId) ! RegisterPlayerMsg
+    Akka.system.actorSelection("/user/"+gameId) ! RegisterWatcherMsg
   }
-}
 
+}

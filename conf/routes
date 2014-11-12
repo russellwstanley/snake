@@ -6,7 +6,8 @@
 GET     /                           controllers.Application.index
 GET /games                          controllers.Application.games
 GET /games/:id                      controllers.Application.game(id:String)
-GET /gamesocket/:id                 controllers.Application.gamesocket(id:String)
+GET /gamesocket/:id                 controllers.Application.playGame(id:String)
+GET /watchgamesocket/:id            controllers.Application.watchGame(id:String)
 GET /gamessocket                    controllers.Application.watchGames
 POST /games                         controllers.Application.newGame
 

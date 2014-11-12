@@ -14,17 +14,6 @@ object Actors{
   def gameActor = Akka.system.actorSelection("/user/"+Actors.gameName)
 }
 
-trait GameSpace{
-
-  implicit val space = new Space  {
-    def leftBounds : Int = 0
-    def rightBounds : Int = 60
-    def upBounds : Int = 0
-    def downBounds : Int = 60
-  }
-
-}
-
 object AddSnakeRequest
 object GatherMovesRequest
 case class ReportStateMsg(state : GameState[ActorRef] )

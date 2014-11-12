@@ -1,22 +1,9 @@
 
-object MyStringPimper{
-
-  class PimpedString(s : String){
-    def pimped = s + " has been pimped"
-  }
-
-  implicit def pimpString(s : String) = new PimpedString(s)
-
-
+var functions = Map[String,()=>Int]()
+for( i <- 0 until 10 ){
+  functions = functions + ("function"+i -> (() => i + 1))
 
 }
-
-object App {
-  import MyStringPimper._
-
-  //prints "this string has been pimped"
-  def doStuff() : Unit = println("this string" pimped)
-}
-
-
+println(functions("function0")())
+println(functions("function1")())
 

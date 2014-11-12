@@ -13,6 +13,7 @@ import play.api.data._
 import play.api.data.Forms._
 import scala.concurrent.Future
 import actors.CreateGameMsg
+import play.api.Logger
 
 object Application extends Controller {
 
@@ -43,7 +44,13 @@ object Application extends Controller {
     Ok(views.html.games())
   }
 
-  def gamesocket(id:String) = WebSocket.acceptWithActor[String,JsValue]{
+  def watchGame(id:String) = WebSocket.acceptWithActor[String,JsValue]{
+    Logger.debug("watchgame "+id)
+    request => out => Props(new GameWatcherActor(id,out))
+  }
+
+  def playGame(id:String) = WebSocket.acceptWithActor[String,JsValue]{
+    Logger.debug("playgame "+id)
     request => out => Props(new PlayerActor(id,out))
   }
 
