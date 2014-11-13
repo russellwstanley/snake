@@ -3,17 +3,22 @@
 <script>
 
 holder = {};
-for(i = 0 ; i < 10; i++){
-    var j = i + 2
-    holder["function"+i] = function(){
-        return j + 1;
-    }
-}
+function Person(){
+    this.age = 0;
+};
+l = [1,2,3,4,5];
+l.forEach(function(element,index,array){
+    var person = new Person();
+    person.age = index;
+    holder["function"+index] = function(){
+        alert(person.age);
+    };
+});
 
-console.log(holder['function0']())
-console.log(holder['function1']())
-console.log(holder['function2']())
-console.log(holder['function3']())
+holder['function0']()
+holder['function1']()
+holder['function2']()
+holder['function3']()
 
 </script>
 

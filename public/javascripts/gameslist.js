@@ -44,12 +44,6 @@ $(document).ready(function() {
                 games[gameId] = gameSocket;
                 //TODO massive duplication with snake.js
                 gameSocket.onmessage = bindCanvas(context);
-                    //console.log(gameId);
-                    //console.log(event);
-                   // points = JSON.parse(event.data);
-                   // processPoints(points[0],context.fillRect.bind(context)); //create new points
-                   // processPoints(points[1],context.clearRect.bind(context)); //delete old points
-                //};
             }
         }
     };
