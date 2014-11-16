@@ -21,7 +21,7 @@ object Application extends Controller {
 
   val gameForm = Form(
     mapping(
-      "name" -> text
+      "name" -> nonEmptyText
     )(GameData.apply)(GameData.unapply)
   )
 
@@ -34,10 +34,19 @@ object Application extends Controller {
 
   def newGame = Action {
     implicit request => {
-      val gameData = gameForm.bindFromRequest.get
-      Actors.gameManagerActor ! CreateGameMsg(gameData.name)
-      Redirect("games")
+      gameForm.bindFromRequest.fold(
+        withErrors => BadRequest(views.html.createGameForm("Oops", withErrors)),
+        gameData => {
+          Actors.gameManagerActor ! CreateGameMsg(gameData.name)
+          Redirect("games")
+        }
+      )
     }
+  }
+
+  def createGameForm = Action{
+    Ok(views.html.createGameForm("Create a new game",gameForm))
+
   }
 
   def games = Action{

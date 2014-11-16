@@ -4,6 +4,7 @@
 
 # Home page
 GET     /                           controllers.Application.index
+GET /creategameform                 controllers.Application.createGameForm
 GET /games                          controllers.Application.games
 GET /games/:id                      controllers.Application.game(id:String)
 GET /gamesocket/:id                 controllers.Application.playGame(id:String)

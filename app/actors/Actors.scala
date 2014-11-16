@@ -1,11 +1,20 @@
 package actors
 
-import play.api.Play.current
 import akka.actor._
 import game._
+import play.api.Play.current
 import play.api.libs.concurrent.Akka
-import game.Point
-import game.AliveSnake
+
+trait WatcherActor extends Actor{
+  var watchers  : Set[ActorRef] = Set.empty
+
+  val handleWatching : PartialFunction[Any,Unit] = {
+
+    case RegisterWatcherMsg => {
+      watchers = watchers + sender
+    }
+  }
+}
 
 object Actors{
   val gameManagerName = "game_manager"

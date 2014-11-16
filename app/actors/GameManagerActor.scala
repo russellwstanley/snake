@@ -1,6 +1,6 @@
 package actors
 
-import akka.actor.{Props, ActorRef, Actor}
+import akka.actor.{Terminated, Props, ActorRef, Actor}
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import scala.concurrent.duration._
@@ -32,6 +32,9 @@ class GameManagerActor extends Actor{
     }
     case GetGamesMsg() => {
       sender ! GamesListMsg(games)
+    }
+    case Terminated => {
+      watchers = watchers - sender
     }
   }
 }

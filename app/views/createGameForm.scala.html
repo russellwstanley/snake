@@ -1,0 +1,13 @@
+@import controllers.Application.GameData
+@import helper._
+@(title : String, gameData : Form[GameData])
+<html>
+<head>
+    <title>@title</title>
+</head>
+<body>
+@form(routes.Application.newGame){
+    @inputText(gameData("name"),'id -> "name", 'size -> 30 , 'class->"form-horizontal")
+}
+</html>
+

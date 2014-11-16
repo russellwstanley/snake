@@ -9,36 +9,46 @@ import play.api.Logger
 
 class SnakeGameActor extends Actor {
 
-  var players: Map[ActorRef, Player] = Map.empty
-  var watchers: Set[ActorRef] = Set[ActorRef]()//TODO duplicated from GamesWatcher??
+  var players: scala.collection.mutable.Map[ActorRef, Player] = scala.collection.mutable.Map.empty
+  var watchers: Set[ActorRef] = Set[ActorRef]()//TODO duplicated from GamesManager??
   var game = SnakeGame[ActorRef]("testid", "test")
 
-  //would be cleaner with mutable state
-  def nextPlayerMoves: (Map[ActorRef, Player], Map[ActorRef, Direction]) = {
-    players.foldLeft(Map[ActorRef, Player](), Map[ActorRef, Direction]()) {
-      case ((newPlayers, moves), (id, player)) =>
+//  def nextPlayerMoves: (Map[ActorRef, Player], Map[ActorRef, Direction]) = {
+//    players.foldLeft(Map[ActorRef, Player](), Map[ActorRef, Direction]()) {
+//      case ((newPlayers, moves), (id, player)) =>
+//        val move = player.move
+//        val newPlayer = player.popMove
+//        ((newPlayers + (id -> newPlayer)), moves + (id -> move))
+//    }
+//  }j
+
+
+  //FORTALK why is players mutable
+
+  def getMoves() : Map[ActorRef,Direction] ={
+    players.map{
+      case (ref,player) => {
         val move = player.move
-        val newPlayer = player.popMove
-        ((newPlayers + (id -> newPlayer)), moves + (id -> move))
-    }
+        players += ref -> player.popMove
+        ref -> move
+      }
+    }.toMap
   }
+
 
   def receive = {
     case RegisterPlayerMsg => {
-      Logger.debug("REGISTER PLAYER")
       context.watch(sender)
       players = players + (sender->Player())
       game = game.copy(state = game.state + sender)
     }
     case RegisterWatcherMsg =>{
-      Logger.debug("REGISTER WATCHER")
       context.watch(sender)
       watchers = watchers + sender
     }
     case TickMsg => {
       //the immutable style makes this ungainly
-      val (newPlayers,moves) = nextPlayerMoves
-      players = newPlayers
+      val moves = getMoves
       game = game.next(moves)
       players.keys.foreach(ref => ref ! ReportStateMsg(game.state))
       watchers.foreach(ref => ref ! ReportStateMsg(game.state))
@@ -48,7 +58,6 @@ class SnakeGameActor extends Actor {
       case None => 
     }
     case Terminated(actor) => {
-      Logger.debug("terminated "+actor)
       players = players - actor
       watchers = watchers - actor
     }

@@ -22,6 +22,8 @@ case class SnakeGame[T](id: String, name: String, state : GameState[T] = GameSta
 
 case class GameState[T](snakes: Map[T, Snake] = Map[T, Snake](), food: Set[Point] = Set[Point]()) {
 
+  //FORTALK where to put the methods that transform gamestate
+
   val chanceOfNewFood = 0.02
   val minFood = 1
   val maxFood = 5
@@ -40,7 +42,7 @@ case class GameState[T](snakes: Map[T, Snake] = Map[T, Snake](), food: Set[Point
     copy(snakes = snakes + (id -> newSnake))
   }
 
-  def snakeHeads: Set[Point] = snakes.values.foldLeft(Set[Point]())((acc, snake) => snake match {
+  lazy val snakeHeads: Set[Point] = snakes.values.foldLeft(Set[Point]())((acc, snake) => snake match {
     case DeadSnake() => acc
     case AliveSnake(points, _, _) => acc + points.head
   })
@@ -49,7 +51,7 @@ case class GameState[T](snakes: Map[T, Snake] = Map[T, Snake](), food: Set[Point
     this.copy(snakes = snakes.mapValues[Snake](mapper))
   }
 
-  def snakePoints: Iterable[Point] = snakes.values.flatMap(snake => snake.points)
+  lazy val snakePoints: Iterable[Point] = snakes.values.flatMap(snake => snake.points)
 
   def feedSnakes : GameState[T] = {
     def feedSnake(snake: Snake): Snake = snake match {

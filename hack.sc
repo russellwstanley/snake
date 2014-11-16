@@ -10,3 +10,7 @@
 //})
 val l = List(1,2,3)
 val n = 2  :: l
+
+val map = scala.collection.mutable.Map[Int,Int](1->3,2->5,5->7)
+
+

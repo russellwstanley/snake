@@ -12,16 +12,6 @@ $(document).ready(function() {
         }
     };
 
-    var bindCanvas = function(context){
-        return function(event){
-            points = JSON.parse(event.data);
-            processPoints(points[0],context.fillRect.bind(context)); //create new points
-            processPoints(points[1],context.clearRect.bind(context)); //delete old points
-        }
-    }
-
-
-
     wsEndpoint = location.host+':9000';
     //TODO this is ugly
     if(location.host.indexOf(':') > -1){
@@ -29,22 +19,23 @@ $(document).ready(function() {
     }
     soc = new WebSocket("ws://"+wsEndpoint+"/gamessocket");
     soc.onmessage = function(event){
-        gamesMsg = JSON.parse(event.data);
-        for (var i = 0; i < gamesMsg.length ; i++) {
-            var gameId = gamesMsg[i].id;
-            console.log(gameId);
-            var gameName = gamesMsg[i].name;
-            if(!(gameId in games)){
-                var canvasElem = $("<canvas id="+gameId+" width="+canvasSize+" height="+canvasSize+" class=\"clear\" style=\"border:1px dotted;float:center\"></canvas>")
-                var titleElem = $("<a href=games/"+gameId+" style=\"display:block\">"+gameName+"</a>")
+        JSON.parse(event.data).forEach(function(game){
+            if(!(game.id in games)){
+                var canvasElem = $("<canvas id="+game.id+" width="+canvasSize+" height="+canvasSize+" class=\"clear\" style=\"border:1px dotted;float:center\"></canvas>")
+                var titleElem = $("<a href=games/"+game.id+" width="+canvasSize+">"+game.name+"</a>")
+
                 gamesElem.append(titleElem);
                 gamesElem.append(canvasElem);
                 var context = canvasElem[0].getContext('2d');
-                var gameSocket = new WebSocket("ws://"+wsEndpoint+"/watchgamesocket/"+gameId);
-                games[gameId] = gameSocket;
+                var gameSocket = new WebSocket("ws://"+wsEndpoint+"/watchgamesocket/"+game.id);
+                games[game.id] = gameSocket;
                 //TODO massive duplication with snake.js
-                gameSocket.onmessage = bindCanvas(context);
+                gameSocket.onmessage = function(event){
+                    points = JSON.parse(event.data);
+                    processPoints(points[0],context.fillRect.bind(context)); //create new points
+                    processPoints(points[1],context.clearRect.bind(context)); //delete old points
+                }
             }
-        }
+        });
     };
 });

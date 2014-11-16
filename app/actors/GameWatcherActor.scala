@@ -14,9 +14,7 @@ class GameWatcherActor(gameId:String,out:ActorRef) extends Actor {
     def writes(p: Point): JsValue = new JsArray(List(new JsNumber(p.x), new JsNumber(p.y)))
   }
 
-  //TODO duplication with PlayerActor
   def receive = {
-    case "foo" =>
     case ReportStateMsg(state) => {
       val newPoints : Set[Point] = state.snakePoints.toSet ++ state.food
       val unchanged = previousPoints & newPoints
@@ -26,6 +24,7 @@ class GameWatcherActor(gameId:String,out:ActorRef) extends Actor {
       out ! Json.toJson(List(added,deleted))
     }
   }
+
 
   override def preStart = {
     Akka.system.actorSelection("/user/"+gameId) ! RegisterWatcherMsg
