@@ -7,19 +7,32 @@ import akka.actor.Terminated
 import scala.Some
 import play.api.Logger
 
-case class PlayerHolder(ref : ActorRef, player : Player)
+case class PlayerHolder(ref : ActorRef, player : Player, moveQueue : List[Direction] = Nil){
+
+    def pushMove(move: Direction): PlayerHolder = copy(moveQueue = moveQueue :+ move)
+
+    def popMove: PlayerHolder = moveQueue match {
+      case Nil => copy()
+      case head :: tail => copy(moveQueue = tail)
+    }
+
+    def move: Direction = moveQueue match {
+      case Nil => Forwards
+      case head :: tail => head
+    }
+}
 
 class SnakeGameActor extends WatcherActor {
 
   var players: scala.collection.mutable.Map[String,PlayerHolder] = scala.collection.mutable.Map.empty
-  var game = SnakeGame[String]("testid", "test")
+  var game = SnakeGame[Player]("testid", "test")
 
-  def getMoves() : Map[String,Direction] ={
+  def getMoves() : Map[Player,Direction] ={
     players.map{
-      case (id, PlayerHolder(ref,player)) => {
-        val move = player.move
-        players += (id -> PlayerHolder(ref ,player.popMove))
-        id -> move
+      case (id, holder) => {
+        val move = holder.move
+        players += (id -> holder.popMove)
+        holder.player -> move
       }
     }.toMap
   }
@@ -32,10 +45,10 @@ class SnakeGameActor extends WatcherActor {
 
 
   def receive = handleWatching orElse {
-    case RegisterPlayerMsg(id) => {
+    case RegisterPlayerMsg(player) => {
       context.watch(sender)
-      if(!players.contains(id)) game = game.copy(state = game.state + id)
-      players += (id -> PlayerHolder(sender,Player(id)))
+      if(!players.contains(player.id)) game = game.copy(state = game.state + player)
+      players += (player.id -> PlayerHolder(sender,player))
     }
     case TickMsg => {
       val moves = getMoves
@@ -43,13 +56,13 @@ class SnakeGameActor extends WatcherActor {
       players.values.foreach(holder => holder.ref ! ReportStateMsg(game.state))
       watchers.foreach(ref => ref ! ReportStateMsg(game.state))
     }
-    case MoveMsg(id,move) => players.get(id) match {
-      case Some(PlayerHolder(ref,player)) =>  players += (id -> PlayerHolder(sender,player.pushMove(move)))
+    case MoveMsg(player,move) => players.get(player.id) match {
+      case Some(holder) =>  players += (player.id -> holder.pushMove(move))
       case None => 
     }
     case Terminated(sender) => {
       getByActorRef(sender)match {
-        case Some((id,PlayerHolder(ref,player))) => players.remove(id)
+        case Some((id,_)) => players.remove(id)
         case None => //do nothing
       }
     }

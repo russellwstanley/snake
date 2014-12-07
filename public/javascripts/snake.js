@@ -12,15 +12,25 @@ $(document).ready(function() {
     soc = new WebSocket("ws://"+wsEndpoint+"/gamesocket/"+id);
     soc.onmessage = function(event){
         points = JSON.parse(event.data);
-        processPoints(points[0],context.fillRect.bind(context)); //create new points
-        processPoints(points[1],context.clearRect.bind(context)); //delete old points
+        clearPoints(points[1],context);
+        addPoints(points[0],context);
     };
 
-    processPoints = function(points,action){
+    addPoints = function(points,context){
         for(i=0;i<points.length;i++){
-            xpos = points[i][0] * snakeWidth;
-            ypos = points[i][1] * snakeWidth;
-            action(xpos,ypos ,snakeWidth,snakeWidth);
+            xpos = points[i].x * snakeWidth;
+            ypos = points[i].y * snakeWidth;
+            color = points[i].c;
+            console.log(color);
+            context.fillStyle = color;
+            context.fillRect(xpos,ypos ,snakeWidth,snakeWidth);
+        }
+    };
+    clearPoints = function(points,context){
+        for(i=0;i<points.length;i++){
+            xpos = points[i].x * snakeWidth;
+            ypos = points[i].y * snakeWidth;
+            context.clearRect(xpos,ypos ,snakeWidth,snakeWidth);
         }
     };
 

@@ -10,6 +10,8 @@ class GamesWatcherActor(out:ActorRef) extends Actor{
   case class FormattedGame(name:String,id : String)
   implicit val gamesHolderWrites = Json.writes[FormattedGame]
 
+
+
   def receive = {
     case GamesListMsg(games) => {
       Logger.debug(this.getClass.toString + " GamesList")

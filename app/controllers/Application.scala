@@ -1,13 +1,15 @@
 package controllers
 
+import java.awt.Color
+
 import play.api.mvc._
 import akka.actor._
 import akka.pattern._
 import play.api.Play.current
-import play.api.libs.json.{JsArray, Json, JsValue}
+import play.api.libs.json._
 import actors._
 import java.util.concurrent.TimeUnit
-import game.SnakeGame
+import game.{Player, SnakeGame}
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.data._
 import play.api.data.Forms._
@@ -20,6 +22,7 @@ import scala.util.Random
 object Application extends Controller {
 
   val playerIdKey: String = "PLAYER_ID"
+  val playerColorKey: String = "PLAYER_COLOR"
   case class GameData(name: String)
 
   val gameForm = Form(
@@ -28,20 +31,27 @@ object Application extends Controller {
     )(GameData.apply)(GameData.unapply)
   )
 
+
+  implicit val playerWrites = Json.writes[Player]
+  implicit val playerReads = Json.reads[Player]
+
   implicit val timeout = akka.util.Timeout(3, TimeUnit.SECONDS)
 
   def index = Action {
     implicit request => {
       request.session.get(playerIdKey) match {
         case Some(id) => Ok(views.html.index("Snake"))
-        case None => Ok(views.html.index("Snake")).withSession(playerIdKey-> generateNewId)
+        case None => {
+          val player = generateNewPlayer
+          Ok(views.html.index("Snake")).withSession(("PLAYER"->Json.toJson(player).toString()))
+        }
       }
     }
   }
 
 
-  def generateNewId: String = {
-    Random.nextString(24);
+  def generateNewPlayer: Player = {
+    Player(Random.nextString(24), "#%06X".format(Random.nextInt(16581375)))
   }
 
   def newGame = Action {
@@ -71,15 +81,16 @@ object Application extends Controller {
   }
 
   def playGame(gameId:String) = WebSocket.tryAcceptWithActor[String,JsValue]{
-
     request => {
-      Future.successful(request.session.get(playerIdKey) match {
-        case Some(playerId) => Right(out => Props(new PlayerActor(playerId,gameId, out)))
+      Future.successful(request.session.get("PLAYER").flatMap {
+        json => Json.parse(json).validate[Player].asOpt
+      } match {
+        case Some(player) => Right(out => Props(new PlayerActor(player,gameId, out)))
         case None => Left(Forbidden)
       })
     }
-
   }
+
 
   def game(id:String) = Action {
     Ok(views.html.game(id))

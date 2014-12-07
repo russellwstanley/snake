@@ -8,17 +8,17 @@ import game.Point
 import play.api.libs.concurrent.Akka
 
 
-class PlayerActor(playerId : String, gameId:String,out:ActorRef) extends GameWatcherActor(gameId,out){
+class PlayerActor(player : Player, gameId:String,out:ActorRef) extends GameWatcherActor(gameId,out){
 
   val playMoves : PartialFunction[Any,Unit] = {
-    case "l" => Akka.system.actorSelection("/user/"+gameId)  ! MoveMsg(playerId,Left)
-    case "r" => Akka.system.actorSelection("/user/"+gameId)  ! MoveMsg(playerId,Right)
+    case "l" => Akka.system.actorSelection("/user/"+gameId)  ! MoveMsg(player,Left)
+    case "r" => Akka.system.actorSelection("/user/"+gameId)  ! MoveMsg(player,Right)
   }
 
   override def receive = playMoves orElse super.receive
 
   override def preStart = {
-    Akka.system.actorSelection("/user/"+gameId) ! RegisterPlayerMsg(playerId)
+    Akka.system.actorSelection("/user/"+gameId) ! RegisterPlayerMsg(player)
   }
 }
 

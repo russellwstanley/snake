@@ -1,5 +1,7 @@
 package game
 
+import java.awt.Color
+
 import scala.util.Random
 import scala.annotation.tailrec
 
@@ -158,18 +160,10 @@ trait Space {
   }
 }
 
-case class Player(id : String, moveQueue: List[Direction] = Nil) {
-  def pushMove(move: Direction): Player = copy(moveQueue = moveQueue :+ move)
 
-  def popMove: Player = moveQueue match {
-    case Nil => copy()
-    case head :: tail => copy(moveQueue = tail)
-  }
 
-  def move: Direction = moveQueue match {
-    case Nil => Forwards
-    case head :: tail => head
-  }
+//TODO color should be an actual color
+case class Player(id : String, color : String) {
 }
 
 trait Snake {
