@@ -7,10 +7,9 @@ import akka.actor.Terminated
 import scala.Some
 import play.api.Logger
 
-class SnakeGameActor extends Actor {
+class SnakeGameActor extends WatcherActor {
 
   var players: scala.collection.mutable.Map[ActorRef, Player] = scala.collection.mutable.Map.empty
-  var watchers: Set[ActorRef] = Set[ActorRef]()//TODO duplicated from GamesManager??
   var game = SnakeGame[ActorRef]("testid", "test")
 
 //  def nextPlayerMoves: (Map[ActorRef, Player], Map[ActorRef, Direction]) = {
@@ -36,15 +35,11 @@ class SnakeGameActor extends Actor {
   }
 
 
-  def receive = {
+  def receive = handleWatching orElse {
     case RegisterPlayerMsg => {
       context.watch(sender)
       players = players + (sender->Player())
       game = game.copy(state = game.state + sender)
-    }
-    case RegisterWatcherMsg =>{
-      context.watch(sender)
-      watchers = watchers + sender
     }
     case TickMsg => {
       //the immutable style makes this ungainly
@@ -59,7 +54,6 @@ class SnakeGameActor extends Actor {
     }
     case Terminated(actor) => {
       players = players - actor
-      watchers = watchers - actor
     }
   }
 
