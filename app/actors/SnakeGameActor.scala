@@ -7,56 +7,52 @@ import akka.actor.Terminated
 import scala.Some
 import play.api.Logger
 
+case class PlayerHolder(ref : ActorRef, player : Player)
+
 class SnakeGameActor extends WatcherActor {
 
-  var players: scala.collection.mutable.Map[ActorRef, Player] = scala.collection.mutable.Map.empty
-  var game = SnakeGame[ActorRef]("testid", "test")
+  var players: scala.collection.mutable.Map[String,PlayerHolder] = scala.collection.mutable.Map.empty
+  var game = SnakeGame[String]("testid", "test")
 
-//  def nextPlayerMoves: (Map[ActorRef, Player], Map[ActorRef, Direction]) = {
-//    players.foldLeft(Map[ActorRef, Player](), Map[ActorRef, Direction]()) {
-//      case ((newPlayers, moves), (id, player)) =>
-//        val move = player.move
-//        val newPlayer = player.popMove
-//        ((newPlayers + (id -> newPlayer)), moves + (id -> move))
-//    }
-//  }j
-
-
-  //FORTALK why is players mutable
-
-  def getMoves() : Map[ActorRef,Direction] ={
+  def getMoves() : Map[String,Direction] ={
     players.map{
-      case (ref,player) => {
+      case (id, PlayerHolder(ref,player)) => {
         val move = player.move
-        players += ref -> player.popMove
-        ref -> move
+        players += (id -> PlayerHolder(ref ,player.popMove))
+        id -> move
       }
     }.toMap
   }
 
-
-  def receive = handleWatching orElse {
-    case RegisterPlayerMsg => {
-      context.watch(sender)
-      players = players + (sender->Player())
-      game = game.copy(state = game.state + sender)
-    }
-    case TickMsg => {
-      //the immutable style makes this ungainly
-      val moves = getMoves
-      game = game.next(moves)
-      players.keys.foreach(ref => ref ! ReportStateMsg(game.state))
-      watchers.foreach(ref => ref ! ReportStateMsg(game.state))
-    }
-    case move: Direction => players.get(sender) match {
-      case Some(player) => players = players + (sender -> player.pushMove(move))
-      case None => 
-    }
-    case Terminated(actor) => {
-      players = players - actor
+  def getByActorRef(ref : ActorRef) : Option[(String,PlayerHolder)] = {
+    players.find{
+      case(foundRef,player) => foundRef == ref
     }
   }
 
 
+  def receive = handleWatching orElse {
+    case RegisterPlayerMsg(id) => {
+      context.watch(sender)
+      if(!players.contains(id)) game = game.copy(state = game.state + id)
+      players += (id -> PlayerHolder(sender,Player(id)))
+    }
+    case TickMsg => {
+      val moves = getMoves
+      game = game.next(moves)
+      players.values.foreach(holder => holder.ref ! ReportStateMsg(game.state))
+      watchers.foreach(ref => ref ! ReportStateMsg(game.state))
+    }
+    case MoveMsg(id,move) => players.get(id) match {
+      case Some(PlayerHolder(ref,player)) =>  players += (id -> PlayerHolder(sender,player.pushMove(move)))
+      case None => 
+    }
+    case Terminated(sender) => {
+      getByActorRef(sender)match {
+        case Some((id,PlayerHolder(ref,player))) => players.remove(id)
+        case None => //do nothing
+      }
+    }
+  }
 }
 

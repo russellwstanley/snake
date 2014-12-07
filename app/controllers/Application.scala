@@ -15,8 +15,11 @@ import scala.concurrent.Future
 import actors.CreateGameMsg
 import play.api.Logger
 
+import scala.util.Random
+
 object Application extends Controller {
 
+  val playerIdKey: String = "PLAYER_ID"
   case class GameData(name: String)
 
   val gameForm = Form(
@@ -28,9 +31,18 @@ object Application extends Controller {
   implicit val timeout = akka.util.Timeout(3, TimeUnit.SECONDS)
 
   def index = Action {
-    Ok(views.html.index("Snake"))
+    implicit request => {
+      request.session.get(playerIdKey) match {
+        case Some(id) => Ok(views.html.index("Snake"))
+        case None => Ok(views.html.index("Snake")).withSession(playerIdKey-> generateNewId)
+      }
+    }
   }
 
+
+  def generateNewId: String = {
+    Random.nextString(24);
+  }
 
   def newGame = Action {
     implicit request => {
@@ -58,9 +70,15 @@ object Application extends Controller {
     request => out => Props(new GameWatcherActor(id,out))
   }
 
-  def playGame(id:String) = WebSocket.acceptWithActor[String,JsValue]{
-    Logger.debug("playgame "+id)
-    request => out => Props(new PlayerActor(id,out))
+  def playGame(gameId:String) = WebSocket.tryAcceptWithActor[String,JsValue]{
+
+    request => {
+      Future.successful(request.session.get(playerIdKey) match {
+        case Some(playerId) => Right(out => Props(new PlayerActor(playerId,gameId, out)))
+        case None => Left(Forbidden)
+      })
+    }
+
   }
 
   def game(id:String) = Action {

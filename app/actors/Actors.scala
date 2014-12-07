@@ -29,13 +29,15 @@ object Actors{
 
 object AddSnakeRequest
 object GatherMovesRequest
-case class ReportStateMsg(state : GameState[ActorRef] )
+case class ReportStateMsg[T](state : GameState[T] )
 object GetSnakesMsg
-object RegisterPlayerMsg
 object RegisterWatcherMsg
 object GetPlayersMsg
 object GetGamesMsg
 object TickMsg
+
+case class MoveMsg(id : String, direction : Direction)
+case class RegisterPlayerMsg(playerId : String)
 case class GetPlayersResponse(players : Set[ActorRef])
 case class CreateGameMsg(name : String)
 case class GamesListMsg(games : List[GameHolder])

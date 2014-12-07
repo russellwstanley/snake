@@ -158,7 +158,7 @@ trait Space {
   }
 }
 
-case class Player(moveQueue: List[Direction] = Nil) {
+case class Player(id : String, moveQueue: List[Direction] = Nil) {
   def pushMove(move: Direction): Player = copy(moveQueue = moveQueue :+ move)
 
   def popMove: Player = moveQueue match {
