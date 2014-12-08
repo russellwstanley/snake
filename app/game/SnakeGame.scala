@@ -19,6 +19,8 @@ case class SnakeGame[T](id: String, name: String, state : GameState[T] = GameSta
   }
 
   def next(moves : Map[T,Direction]) = copy(state=state.nextState(moves))
+
+  def cleanDeadSnakes = copy(state = state.copy(snakes = state.aliveSnakes -- state.deadSnakes.keys))
 }
 
 
@@ -42,6 +44,10 @@ case class GameState[T](snakes: Map[T, Snake] = Map[T, Snake](), food: Set[Point
 
   def +(id: T): GameState[T] = {
     copy(snakes = snakes + (id -> newSnake))
+  }
+
+  def -(id : T): GameState[T] = {
+    copy(snakes = snakes - id)
   }
 
   lazy val snakeHeads: Set[Point] = snakes.values.foldLeft(Set[Point]())((acc, snake) => snake match {

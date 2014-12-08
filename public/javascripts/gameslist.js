@@ -9,7 +9,6 @@ $(document).ready(function() {
             xpos = points[i].x * snakeWidth;
             ypos = points[i].y * snakeWidth;
             color = points[i].c;
-            console.log(color);
             context.fillStyle = color;
             context.fillRect(xpos,ypos ,snakeWidth,snakeWidth);
         }

@@ -39,15 +39,17 @@ class SnakeGameActor extends WatcherActor {
 
   def getByActorRef(ref : ActorRef) : Option[(String,PlayerHolder)] = {
     players.find{
-      case(foundRef,player) => foundRef == ref
+      case(id,holder) => holder.ref == ref
     }
   }
+
+
 
 
   def receive = handleWatching orElse {
     case RegisterPlayerMsg(player) => {
       context.watch(sender)
-      if(!players.contains(player.id)) game = game.copy(state = game.state + player)
+      if(!game.state.snakes.contains(player)) game = game.copy(state = game.state + player)
       players += (player.id -> PlayerHolder(sender,player))
     }
     case TickMsg => {
@@ -55,6 +57,7 @@ class SnakeGameActor extends WatcherActor {
       game = game.next(moves)
       players.values.foreach(holder => holder.ref ! ReportStateMsg(game.state))
       watchers.foreach(ref => ref ! ReportStateMsg(game.state))
+      game = game.cleanDeadSnakes
     }
     case MoveMsg(player,move) => players.get(player.id) match {
       case Some(holder) =>  players += (player.id -> holder.pushMove(move))
@@ -62,7 +65,7 @@ class SnakeGameActor extends WatcherActor {
     }
     case Terminated(sender) => {
       getByActorRef(sender)match {
-        case Some((id,_)) => players.remove(id)
+        case Some((id,holder)) => players.remove(id)
         case None => //do nothing
       }
     }

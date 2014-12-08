@@ -10,7 +10,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Global extends GlobalSettings{
 
   override def onStart(app : Application){
-    val gameManagerActor = Akka.system.actorOf(Props[GameManagerActor], name = Actors.gameManagerName)
+    Akka.system.actorOf(Props[GameManagerActor], name = Actors.gameManagerName)
+    Akka.system.actorOf(Props[PlayerManagerActor], name = Actors.playerManagerName)
   }
 
 }

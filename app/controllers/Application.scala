@@ -37,13 +37,14 @@ object Application extends Controller {
 
   implicit val timeout = akka.util.Timeout(3, TimeUnit.SECONDS)
 
-  def index = Action {
+  def index = Action.async {
     implicit request => {
       request.session.get(playerIdKey) match {
-        case Some(id) => Ok(views.html.index("Snake"))
+        case Some(id) => Future(Ok(views.html.index("Snake")))
         case None => {
-          val player = generateNewPlayer
-          Ok(views.html.index("Snake")).withSession(("PLAYER"->Json.toJson(player).toString()))
+          val futurePlayer = (Actors.playerManagerActor ? CreatePlayerMsg).mapTo[Player]
+          futurePlayer.map(player =>Ok(views.html.index("Snake"))
+            .withSession(("PLAYER"->Json.toJson(player).toString())))
         }
       }
     }

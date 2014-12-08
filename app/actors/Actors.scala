@@ -12,7 +12,6 @@ trait WatcherActor extends Actor{
   val handleWatching : PartialFunction[Any,Unit] = {
 
     case RegisterWatcherMsg => {
-      Logger.debug(getClass().toString+" RegisterWatcher")
       context.watch(sender)
       watchers = watchers + sender
     }
@@ -23,8 +22,11 @@ trait WatcherActor extends Actor{
 object Actors{
   val gameManagerName = "game_manager"
   val gameName = "game"
+  val playerManagerName = "player_manager"
   def gameManagerActor = Akka.system.actorSelection("/user/"+gameManagerName)
-  def gameActor = Akka.system.actorSelection("/user/"+Actors.gameName)
+  def playerManagerActor = Akka.system.actorSelection("/user/"+playerManagerName)
+
+
 }
 
 object AddSnakeRequest
@@ -35,6 +37,7 @@ object RegisterWatcherMsg
 object GetPlayersMsg
 object GetGamesMsg
 object TickMsg
+object CreatePlayerMsg
 
 case class MoveMsg(player : Player, direction : Direction)
 case class RegisterPlayerMsg(player : Player)

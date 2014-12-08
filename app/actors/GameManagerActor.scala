@@ -19,7 +19,6 @@ class GameManagerActor extends WatcherActor{
 
   def receive = handleWatching orElse {
     case CreateGameMsg(name) => {
-      Logger.debug(this.getClass.toString + "CreateGamesMsg")
       val gameId = getNewGameId
       val game = Akka.system.actorOf(Props[SnakeGameActor], name = gameId.toString)
       Akka.system.scheduler.schedule(0.millisecond,100.millisecond,game,TickMsg)
@@ -27,7 +26,6 @@ class GameManagerActor extends WatcherActor{
       watchers.foreach(ref => ref ! GamesListMsg(games))
     }
     case GetGamesMsg => {
-      Logger.debug(this.getClass.toString + " GetGamesMsg")
       sender ! GamesListMsg(games)
     }
   }
