@@ -37,6 +37,7 @@ object RegisterWatcherMsg
 object GetPlayersMsg
 object GetGamesMsg
 object TickMsg
+object CreatePlayerMsg
 
 case class MoveMsg(player : Player, direction : Direction)
 case class RegisterPlayerMsg(player : Player)

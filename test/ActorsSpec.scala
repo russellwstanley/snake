@@ -1,4 +1,4 @@
-import actors.{GamesListMsg,GetGamesMsg, CreateGameMsg, GameManagerActor}
+import actors._
 import akka.testkit.TestActorRef
 import game.SnakeGame
 import java.util.concurrent.TimeUnit
@@ -24,9 +24,13 @@ class ActorsSpec extends Specification{
     "get games" in new WithApplication{
       implicit val system = Akka.system
       implicit val timeout = akka.util.Timeout(2,TimeUnit.SECONDS)
+      val expected = List(GameHolder("test",null))
       val manager = TestActorRef[GameManagerActor]
-      val games = Await.result(manager ? GetGamesMsg(),Duration(4,TimeUnit.SECONDS)).asInstanceOf[GamesListMsg]
-      pending("TODO")
+      manager.underlyingActor.games = expected
+      val returned = Await.result(manager ? GetGamesMsg,Duration(4,TimeUnit.SECONDS)).asInstanceOf[GamesListMsg]
+      returned.games must equalTo(expected)
+
+
 
     }
   }
