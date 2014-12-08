@@ -50,11 +50,6 @@ object Application extends Controller {
     }
   }
 
-
-  def generateNewPlayer: Player = {
-    Player(Random.nextString(24), "#%06X".format(Random.nextInt(16581375)))
-  }
-
   def newGame = Action {
     implicit request => {
       gameForm.bindFromRequest.fold(

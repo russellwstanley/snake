@@ -25,7 +25,7 @@ object Actors{
   val playerManagerName = "player_manager"
   def gameManagerActor = Akka.system.actorSelection("/user/"+gameManagerName)
   def playerManagerActor = Akka.system.actorSelection("/user/"+playerManagerName)
-
+  def gameActor(gameId : String) = Akka.system.actorSelection("/user/"+gameId)
 
 }
 
@@ -37,7 +37,6 @@ object RegisterWatcherMsg
 object GetPlayersMsg
 object GetGamesMsg
 object TickMsg
-object CreatePlayerMsg
 
 case class MoveMsg(player : Player, direction : Direction)
 case class RegisterPlayerMsg(player : Player)
