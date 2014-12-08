@@ -24,7 +24,7 @@ object Actors{
   val gameManagerName = "game_manager"
   val gameName = "game"
   def gameManagerActor = Akka.system.actorSelection("/user/"+gameManagerName)
-  def gameActor = Akka.system.actorSelection("/user/"+Actors.gameName)
+  def gameActor(gameId : String) = Akka.system.actorSelection("/user/"+gameId)
 }
 
 object AddSnakeRequest

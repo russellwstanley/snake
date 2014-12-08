@@ -17,14 +17,6 @@ class GameWatcherActor(gameId:String,out:ActorRef) extends Actor {
   var previousPoints : Set[ColoredPoint] = Set.empty
 
   implicit val pointWrites = Json.writes[ColoredPoint]
-//  implicit val locationWrites: Writes[Location] = (
-//  (JsPath \ "lat").write[Double] and
-//  (JsPath \ "long").write[Double]
-//)(unlift(Location.unapply))
-
-//  implicit val pointWrites = new Writes[ColoredPoint] {
-//    def writes(p: ColoredPoint): JsValue = new JsArray(List(new JsNumber(p.point.x), new JsNumber(p.point.y), new JsNumber))
-//  }
 
   def receive = {
     case ReportStateMsg(state) => {

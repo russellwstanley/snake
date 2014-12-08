@@ -14,7 +14,7 @@ class GameManagerActor extends WatcherActor{
 
   def getNewGameId : Int = {
     gameId = gameId +1
-    return gameId
+    gameId
   }
 
   def receive = handleWatching orElse {

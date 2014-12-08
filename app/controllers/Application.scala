@@ -37,6 +37,7 @@ object Application extends Controller {
 
   implicit val timeout = akka.util.Timeout(3, TimeUnit.SECONDS)
 
+
   def index = Action {
     implicit request => {
       request.session.get(playerIdKey) match {
@@ -50,6 +51,7 @@ object Application extends Controller {
   }
 
 
+  //TODO should be an actor
   def generateNewPlayer: Player = {
     Player(Random.nextString(24), "#%06X".format(Random.nextInt(16581375)))
   }
@@ -68,7 +70,6 @@ object Application extends Controller {
 
   def createGameForm = Action{
     Ok(views.html.createGameForm("Create a new game",gameForm))
-
   }
 
   def games = Action{
