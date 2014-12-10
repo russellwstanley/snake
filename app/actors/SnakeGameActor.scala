@@ -63,7 +63,8 @@ class SnakeGameActor extends WatcherActor {
       case Some(holder) =>  players += (player.id -> holder.pushMove(move))
       case None => 
     }
-    case Terminated(sender) => {
+
+    case Terminated(sender) => { //todo if a player is terminated when they are also a watcher they will never be removed from the list
       getByActorRef(sender)match {
         case Some((id,holder)) => players.remove(id)
         case None => //do nothing
