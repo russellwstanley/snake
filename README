@@ -1,7 +1,18 @@
+The code behind play-snake.com
+
+To Test
+================================
+
+./activator test
+
+
 To Run this Application
 =================================
 
 ./activator
+
+at the activator prompt type:
+
 run <port> (defaults to 9000)
 
 Your appliciation will then be available on localhost:<port>
