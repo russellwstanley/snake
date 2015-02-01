@@ -72,8 +72,11 @@ object Application extends Controller {
   }
 
   def watchGame(id:String) = WebSocket.acceptWithActor[String,JsValue]{
-    Logger.debug("watchgame "+id)
     request => out => Props(new GameWatcherActor(id,out))
+  }
+
+  def gameInfo(id:String) = WebSocket.acceptWithActor[String,JsValue]{
+    request => out => Props(new GameInfoActor(id,out))
   }
 
   def playGame(gameId:String) = WebSocket.tryAcceptWithActor[String,JsValue]{

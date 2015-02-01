@@ -169,7 +169,7 @@ trait Space {
 
 
 //TODO color should be an actual color
-case class Player(id : String = "default_pid", color : String = "#000000") {
+case class Player(id : String = "default_pid", color : String = "#000000", name : String= "Unnamed") {
 }
 
 trait Snake {
