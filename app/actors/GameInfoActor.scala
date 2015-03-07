@@ -1,33 +1,29 @@
 package actors
 
 import akka.actor.{Actor, ActorRef}
-import game.{Player, GameState, Snake}
-import play.api.libs.json.{JsPath, Writes}
-import play.libs.Akka
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
+import play.libs.Akka
 
-/**
- * Created by russell on 2/1/15.
- */
-class GameInfoActor(gameId: String, ref: ActorRef) extends Actor{
+case class GameInfoItem(name: String, color: String, length: Int)
 
-  implicit val snakeWrites : Writes[Map[Player,Snake]]
+class GameInfoActor(gameId: String, out: ActorRef) extends Actor {
 
-  implicit val gameStateWrites : Writes[GameState] = {
-    def writes(state : GameState[Player]) = Json.obj(
-      "snakes" -> state.snakes
-    )
-  }
-  val lastState = None
+  implicit val gameInfoItemReads = Json.writes[GameInfoItem]
+
+  var lastState: Map[String, GameInfoItem] = Map.empty
 
   def receive = {
-    case ReportStateMsg(state) if state != lastState =>
+    case ReportStateMsg(state) => {
+      val newState = state.snakes.map {
+        case (player, snake) => player.id -> GameInfoItem(player.name, player.color, snake.length)
+      }
+      if (lastState != newState) out ! Json.toJson(newState.values)
+      lastState = newState
+    }
   }
 
-
   override def preStart = {
-    Akka.system.actorSelection("/user/"+gameId) ! RegisterWatcherMsg
+    Akka.system.actorSelection("/user/" + gameId) ! RegisterWatcherMsg
   }
 
 }

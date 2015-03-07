@@ -1,19 +1,19 @@
 package actors
 
-import akka.actor.{Terminated, Props, ActorRef, Actor}
-import play.api.Logger
-import play.api.libs.concurrent.Akka
+import akka.actor.Props
 import play.api.Play.current
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.concurrent.Akka
 
-class GameManagerActor extends WatcherActor{
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+
+class GameManagerActor extends WatcherActor {
 
   var gameId = -1;
-  var games : List[GameHolder] = List.empty
+  var games: List[GameHolder] = List.empty
 
-  def getNewGameId : Int = {
-    gameId = gameId +1
+  def getNewGameId: Int = {
+    gameId = gameId + 1
     gameId
   }
 
@@ -21,8 +21,8 @@ class GameManagerActor extends WatcherActor{
     case CreateGameMsg(name) => {
       val gameId = getNewGameId
       val game = Akka.system.actorOf(Props[SnakeGameActor], name = gameId.toString)
-      Akka.system.scheduler.schedule(0.millisecond,100.millisecond,game,TickMsg)
-      games = GameHolder(name,game) :: games
+      Akka.system.scheduler.schedule(0.millisecond, 100.millisecond, game, TickMsg)
+      games = GameHolder(name, game) :: games
       watchers.foreach(ref => ref ! GamesListMsg(games))
     }
     case GetGamesMsg => {

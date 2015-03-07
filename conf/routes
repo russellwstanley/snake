@@ -8,6 +8,7 @@ GET /creategameform                 controllers.Application.createGameForm
 GET /games                          controllers.Application.games
 GET /games/:id                      controllers.Application.game(id:String)
 GET /gamesocket/:id                 controllers.Application.playGame(id:String)
+GET /gameinfosocket/:id             controllers.Application.gameInfo(id:String)
 GET /watchgamesocket/:id            controllers.Application.watchGame(id:String)
 GET /gamessocket                    controllers.Application.watchGames
 POST /games                         controllers.Application.newGame

@@ -179,6 +179,8 @@ trait Snake {
   def facing: Direction
 
   def hasEaten: Boolean
+
+  def length = points.length
 }
 
 case class DeadSnake() extends Snake {
@@ -198,9 +200,10 @@ case class AliveSnake(points: List[Point], facing: Direction = Forwards, hasEate
   val left = "Left"
   val right = "Right"
 
-  def head = points.head
+  lazy val head = points.head
 
-  def tail = points.tail
+  lazy val tail = points.tail
+
 
   def direction(implicit space: Space) = points match {
     case List(head, neck, _*) if head equals neck.rightOne => right

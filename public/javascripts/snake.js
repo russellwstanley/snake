@@ -1,27 +1,39 @@
 $(document).ready(function() {
+
     var snakeWidth = 10;
-    $("canvas").each(function(i){
-    var id = $(this).attr('id');
-    var canvas = $(this)[0];
+    var canvasElem = $('canvas');
+    var id = $(canvasElem).attr('id');
+    var canvas = canvasElem[0];
     var context = canvas.getContext("2d");
     wsEndpoint = location.host+':9000';
     //TODO this is ugly
     if(location.host.indexOf(':') > -1){
         wsEndpoint = location.host; //do not append the port if already connecting on a non default port
     }
-    soc = new WebSocket("ws://"+wsEndpoint+"/gamesocket/"+id);
+    var soc = new WebSocket("ws://"+wsEndpoint+"/gamesocket/"+id);
     soc.onmessage = function(event){
         points = JSON.parse(event.data);
         clearPoints(points[1],context);
         addPoints(points[0],context);
     };
 
+    var infoElem = $("#gameinfo");
+
+    var infoSoc = new WebSocket("ws://"+wsEndpoint+"/gameinfosocket/"+id);
+    infoSoc.onmessage = function(event){
+        info = JSON.parse(event.data)
+        infoElem.empty();
+        for(i = 0 ; i < info.length ; i++){
+            infoElem.append($("<div>"+info[i].name+" "+info[i].length+"</div>"))
+        }
+
+    }
+
     addPoints = function(points,context){
         for(i=0;i<points.length;i++){
             xpos = points[i].x * snakeWidth;
             ypos = points[i].y * snakeWidth;
             color = points[i].c;
-            console.log(color);
             context.fillStyle = color;
             context.fillRect(xpos,ypos ,snakeWidth,snakeWidth);
         }
@@ -55,7 +67,5 @@ $(document).ready(function() {
         event.preventDefault();
         soc.send("r");
     });
-    })
-
 });
 
